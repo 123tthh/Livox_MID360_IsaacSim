@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Embed the Livox MID-360 non-repetitive firing pattern in bundled USDs.
 
-Run with Isaac Sim 5.1's Python environment (or another Python environment
+Run with Isaac Sim 6.2's Python environment (or another Python environment
 that provides ``pxr``).  The source trajectory is the 800,000-ray MID-360
 table published by Livox-SDK/livox_laser_simulation.  Forty emitter states
 represent consecutive 0.1 s hardware frames, so every state contains 20,000
@@ -33,7 +33,7 @@ POINT_RATE_HZ = 200_000
 SCAN_RATE_HZ = 10
 POINTS_PER_STATE = POINT_RATE_HZ // SCAN_RATE_HZ
 STATE_COUNT = 40
-EMBEDDED_EMITTER_STATE_COUNT = 1
+EMBEDDED_EMITTER_STATE_COUNT = STATE_COUNT
 POINT_INTERVAL_NS = 1_000_000_000 // POINT_RATE_HZ
 CHANNEL_COUNT = POINTS_PER_STATE
 EXPECTED_POINTS = POINTS_PER_STATE * STATE_COUNT
@@ -124,7 +124,7 @@ def _find_lidar(stage):
 
 
 def apply_profile(asset_path: Path, trajectory: Trajectory) -> dict[str, object]:
-    """Replace the rotary approximation with a runtime-driven native profile."""
+    """Author all forty native states; no runtime array swapping is required."""
 
     from pxr import Sdf, Usd, Vt
 
@@ -133,79 +133,29 @@ def apply_profile(asset_path: Path, trajectory: Trajectory) -> dict[str, object]
         raise RuntimeError(f"failed to open {asset_path}")
     lidar = _find_lidar(stage)
 
-    for property_name in tuple(lidar.GetPropertyNames()):
-        if property_name.startswith("omni:sensor:Core:emitterState:"):
-            lidar.RemoveProperty(property_name)
-
-    # Hydra in Isaac Sim 5.1 caps serialized attributes on one sensor at 5 MiB.
-    # Keep one fixed-size RTX state on the OmniLidar and put the complete
-    # compressed trajectory on a sibling Scope. The ROS/runtime driver swaps
-    # values (never array lengths) at 10 Hz, which the schema supports.
-    api_schemas = [
-        "OmniSensorGenericLidarCoreAPI",
-        "OmniSensorGenericLidarCoreEmitterStateAPI:s001",
-    ]
-    lidar.SetMetadata("apiSchemas", Sdf.TokenListOp.CreateExplicit(api_schemas))
-
-    def set_core(name: str, value) -> None:
-        attribute = lidar.GetAttribute(f"omni:sensor:Core:{name}")
-        if not attribute.IsValid():
-            raise RuntimeError(f"missing core attribute {name!r} in {asset_path}")
-        attribute.Set(value)
-
-    set_core("scanType", "SOLID_STATE")
-    set_core("scanRateBaseHz", SCAN_RATE_HZ)
-    set_core("reportRateBaseHz", SCAN_RATE_HZ)
-    set_core("numberOfEmitters", POINTS_PER_STATE)
-    # The Core solid-state model represents every independently timed ray as
-    # one detector channel (matching NVIDIA's bundled solid-state profiles).
-    # Livox's CSV contains directions and ordering, but no physical laser ID.
-    set_core("numberOfChannels", CHANNEL_COUNT)
-    set_core("stateResolutionStep", 1)
-    set_core("numLines", 1)
-    set_core("numRaysPerLine", Vt.UIntArray([POINTS_PER_STATE]))
-    set_core("startAzimuthOffsetDeg", 0.0)
-    set_core("validStartAzimuthDeg", 0.0)
-    set_core("validEndAzimuthDeg", 360.0)
-
-    lidar.GetAttribute("omni:sensor:marketName").Set("Livox MID-360")
-    lidar.GetAttribute("omni:sensor:modelName").Set("MID-360 non-repetitive pattern replay")
-    lidar.GetAttribute("omni:sensor:modelVendor").Set("Livox")
-    lidar.GetAttribute("omni:sensor:modelVersion").Set("IsaacSim-5.1-official-trace-4s")
-    lidar.GetAttribute("omni:sensor:tickRate").Set(float(SCAN_RATE_HZ))
-
+    configure_core(lidar, "petal")
     fire_times = Vt.UIntArray([index * POINT_INTERVAL_NS for index in range(POINTS_PER_STATE)])
-    # The USD-native Core model validates channel IDs as 1-based.
-    channel_ids = Vt.UIntArray([index + 1 for index in range(POINTS_PER_STATE)])
+    channel_ids = Vt.UIntArray(range(1, POINTS_PER_STATE + 1))
     banks = Vt.UIntArray([0] * POINTS_PER_STATE)
-    azimuth, elevation = next(iter(trajectory.states()))
-    signed_azimuth = [value if value < 180.0 else value - 360.0 for value in azimuth]
-    prefix = "omni:sensor:Core:emitterState:s001:"
-    values = (
-        ("azimuthDeg", Sdf.ValueTypeNames.FloatArray, Vt.FloatArray(signed_azimuth)),
-        ("elevationDeg", Sdf.ValueTypeNames.FloatArray, Vt.FloatArray(elevation)),
-        ("fireTimeNs", Sdf.ValueTypeNames.UIntArray, fire_times),
-        ("channelId", Sdf.ValueTypeNames.UIntArray, channel_ids),
-        ("bank", Sdf.ValueTypeNames.UIntArray, banks),
-    )
-    for field, value_type, value in values:
-        lidar.CreateAttribute(prefix + field, value_type, custom=False).Set(value)
-
+    for state, (azimuth, elevation) in enumerate(trajectory.states(), start=1):
+        # RTX Core uses clockwise-positive azimuth; Livox XYZ is CCW-positive.
+        signed_azimuth = [-(value if value < 180.0 else value - 360.0) for value in azimuth]
+        prefix = f"omni:sensor:Core:emitterState:s{state:03d}:"
+        values = (
+            ("azimuthDeg", Sdf.ValueTypeNames.FloatArray, Vt.FloatArray(signed_azimuth)),
+            ("elevationDeg", Sdf.ValueTypeNames.FloatArray, Vt.FloatArray(elevation)),
+            ("fireTimeNs", Sdf.ValueTypeNames.UIntArray, fire_times),
+            ("channelId", Sdf.ValueTypeNames.UIntArray, channel_ids),
+            ("bank", Sdf.ValueTypeNames.UIntArray, banks),
+        )
+        for field, value_type, value in values:
+            lidar.CreateAttribute(prefix + field, value_type, custom=False).Set(value)
     pattern_path = lidar.GetParent().GetPath().AppendChild(PATTERN_DATA_NAME)
     stage.RemovePrim(pattern_path)
-    pattern = stage.DefinePrim(pattern_path, "Scope")
-
-    def set_pattern(name: str, value_type, value) -> None:
-        pattern.CreateAttribute(f"lidarHiking:{name}", value_type, custom=True).Set(value)
-
-    compressed_directions = encode_trajectory(trajectory)
-    set_pattern("encoding", Sdf.ValueTypeNames.String, PATTERN_ENCODING)
-    set_pattern("compressedDirections", Sdf.ValueTypeNames.UCharArray, Vt.UCharArray(compressed_directions))
-    set_pattern("pointRateHz", Sdf.ValueTypeNames.UInt, POINT_RATE_HZ)
-    set_pattern("scanRateHz", Sdf.ValueTypeNames.UInt, SCAN_RATE_HZ)
-    set_pattern("pointsPerState", Sdf.ValueTypeNames.UInt, POINTS_PER_STATE)
-    set_pattern("trajectoryStates", Sdf.ValueTypeNames.UInt, STATE_COUNT)
-    set_pattern("trajectorySha256", Sdf.ValueTypeNames.String, EXPECTED_TRAJECTORY_SHA256)
+    lidar.CreateAttribute("mid360:trajectorySha256", Sdf.ValueTypeNames.String, custom=True).Set(EXPECTED_TRAJECTORY_SHA256)
+    lidar.CreateAttribute("mid360:trajectoryStates", Sdf.ValueTypeNames.UInt, custom=True).Set(STATE_COUNT)
+    lidar.CreateAttribute("mid360:trajectoryPeriodSeconds", Sdf.ValueTypeNames.Double, custom=True).Set(4.)
+    stage.GetDefaultPrim().SetAssetInfoByKey("version", "Isaac Sim 6.2")
 
     # Sdf crate Save() appends changed data and grows on every regeneration.
     # Export to a fresh crate and atomically replace the asset so this command
@@ -224,8 +174,50 @@ def apply_profile(asset_path: Path, trajectory: Trajectory) -> dict[str, object]
         "emitters_per_state": POINTS_PER_STATE,
         "points_per_second": POINT_RATE_HZ,
         "trajectory_duration_s": EXPECTED_POINTS / POINT_RATE_HZ,
-        "compressed_pattern_bytes": len(compressed_directions),
+        "runtime_array_swapping": False,
     }
+
+
+def configure_core(lidar, profile: str) -> None:
+    """Set the 6.2 LidarCore schema and its ideal single-return configuration."""
+    from pxr import Sdf, Vt
+
+    for name in tuple(lidar.GetPropertyNames()):
+        if name.startswith("omni:sensor:"):
+            lidar.RemoveProperty(name)
+    count = STATE_COUNT if profile == "petal" else 1
+    emitters = POINTS_PER_STATE if profile == "petal" else 40
+    firing_rate = SCAN_RATE_HZ if profile == "petal" else 5000
+    lidar.SetMetadata("apiSchemas", Sdf.TokenListOp.CreateExplicit(
+        ["OmniSensorGenericLidarCoreAPI"] +
+        [f"OmniSensorGenericLidarCoreEmitterStateAPI:s{i:03d}" for i in range(1, count + 1)]))
+
+    def set_value(name, dtype, value):
+        lidar.CreateAttribute(name, dtype, custom=False).Set(value)
+
+    for name, value in {"marketName": "Livox MID-360", "modelName": "LidarCore", "modelVendor": "NVIDIA", "modelVersion": "0.0.0"}.items():
+        set_value("omni:sensor:" + name, Sdf.ValueTypeNames.String, value)
+    set_value("omni:sensor:tickRate", Sdf.ValueTypeNames.Float, 10.)
+    core = "omni:sensor:Core:"
+    for name, value in {"scanType": "SOLID_STATE" if profile == "petal" else "ROTARY", "rayType": "IDEALIZED",
+                        "elementsCoordsType": "CARTESIAN", "outputFrameOfReference": "SENSOR",
+                        "outputMotionCompensationState": "NONCOMPENSATED", "rotationDirection": "CW"}.items():
+        set_value(core + name, Sdf.ValueTypeNames.Token, value)
+    for name, value in {"scanRateBaseHz": 10, "patternFiringRateHz": firing_rate, "numberOfEmitters": emitters,
+                        "numberOfChannels": emitters, "numLines": 1, "maxReturns": 1, "stateResolutionStep": 1}.items():
+        set_value(core + name, Sdf.ValueTypeNames.UInt, value)
+    for name, value in {"nearRangeM": .1, "farRangeM": 70., "minDistBetweenEchosM": 0., "rangeOffsetM": 0.,
+                        "rangeAccuracyM": 0., "rangeResolutionM": .001, "azimuthErrorMean": 0., "azimuthErrorStd": 0.,
+                        "elevationErrorMean": 0., "elevationErrorStd": 0., "minReflectance": .01,
+                        "minReflectionRangeM": 70., "divergenceHorDeg": 0., "divergenceVerDeg": 0.,
+                        "validStartAzimuthDeg": -180. if profile == "petal" else 0.,
+                        "validEndAzimuthDeg": 180. if profile == "petal" else 360.}.items():
+        set_value(core + name, Sdf.ValueTypeNames.Float, value)
+    for name, value in {"accumulateOutputs": True, "instantLidar": False, "skipDroppingInvalidPoints": False}.items():
+        set_value(core + name, Sdf.ValueTypeNames.Bool, value)
+    for name in ["originErrorMean", "originErrorStd"]:
+        set_value(core + name, Sdf.ValueTypeNames.FloatArray, Vt.FloatArray([0., 0., 0.]))
+    set_value(core + "numRaysPerLine", Sdf.ValueTypeNames.UIntArray, Vt.UIntArray([emitters]))
 
 
 def _parse_args() -> argparse.Namespace:

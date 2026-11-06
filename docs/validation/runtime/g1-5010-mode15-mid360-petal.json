@@ -1,0 +1,107 @@
+{
+  "status": "PASS",
+  "asset_id": "g1-5010-mode15-mid360-petal",
+  "isaac_sim": "6.2.0.0",
+  "checks": {
+    "frames": 45,
+    "cloud_period_ns": 100000000,
+    "valid_points_min_max": [
+      15828,
+      16104
+    ],
+    "raw_points_min_max": [
+      15828,
+      16105
+    ],
+    "observed_states": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "all_40_states_verified_from_xyz": true,
+    "max_unit_direction_error": 5.253077199202236e-07,
+    "per_point_interval_ns": 5000,
+    "raw_tick_states": [
+      0
+    ],
+    "imu": {
+      "samples": 842,
+      "period_ns": 5000000.0,
+      "mean_acceleration_m_s2": [
+        -5.9205092838965356e-05,
+        -3.6133334901933267e-07,
+        -9.810047149658203
+      ],
+      "expected_acceleration_m_s2": [
+        -5.92046517081898e-05,
+        -3.613333649747864e-07,
+        -9.80999999982134
+      ],
+      "max_gyro_rad_s": 0.0
+    }
+  },
+  "ros2": {
+    "cloud_sent": 47,
+    "cloud_received": 47,
+    "imu_sent": 940,
+    "imu_received": 940,
+    "tf_sent": 47,
+    "tf_received": 47,
+    "clock_sent": 940,
+    "clock_received": 940,
+    "layout_ok": true,
+    "imu_units_ok": true,
+    "tf_ok": true,
+    "clock_ok": true,
+    "point_step": 26,
+    "point_timestamp_unit": "absolute nanoseconds, float64",
+    "imu_units": "m/s^2, rad/s",
+    "cloud_period_ns_median": 100000000.0,
+    "imu_period_ns_median": 5000000.0
+  },
+  "asset": "assets/petal_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Petal_Scan.usd",
+  "asset_sha256": "59b67c7bac92e838f6199dde70a2d41a2495cbd29bf598d7ee987205513576c1",
+  "callback_mode": true
+}

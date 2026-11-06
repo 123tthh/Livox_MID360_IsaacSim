@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "profile": "rotary",
+  "points_topic": "/mid360/points",
+  "clouds": 20,
+  "points": 261510,
+  "simulation_time_s": 2.0999999530613422,
+  "ros2": {
+    "cloud_sent": 20,
+    "cloud_received": 0,
+    "imu_sent": 418,
+    "imu_received": 0,
+    "tf_sent": 20,
+    "tf_received": 0,
+    "clock_sent": 418,
+    "clock_received": 0,
+    "layout_ok": true,
+    "imu_units_ok": true,
+    "tf_ok": true,
+    "clock_ok": true,
+    "point_step": 26,
+    "point_timestamp_unit": "absolute nanoseconds, float64",
+    "imu_units": "m/s^2, rad/s",
+    "cloud_period_ns_median": null,
+    "imu_period_ns_median": null
+  }
+}

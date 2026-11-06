@@ -92,7 +92,9 @@ def _petal_contract() -> dict[str, object]:
         "scan_rate_hz": 10,
         "report_rate_hz": 10,
         "emitters_per_state": 20_000,
-        "rtx_emitter_states": 1,
+        "rtx_emitter_states": 40,
+        "runtime_array_swapping": False,
+        "pattern_firing_rate_hz": 10,
         "trajectory_states": 40,
         "channels": 20_000,
         "points_per_second": 200_000,
@@ -104,6 +106,7 @@ def _petal_contract() -> dict[str, object]:
         "trajectory_elevation_deg": [-7.2123, 52.164],
         "robot_frame_nominal_elevation_deg": [-52.0, 7.0],
         "range_m": [0.1, 70.0],
+        "noise_model": "ideal; no calibrated range or angle noise",
     }
 
 
@@ -114,6 +117,7 @@ def _rotary_contract() -> dict[str, object]:
         "scan_type": "ROTARY",
         "scan_rate_hz": 10,
         "report_rate_per_emitter_hz": 5_000,
+        "pattern_firing_rate_hz": 5_000,
         "emitters": 40,
         "points_per_second": 200_000,
         "elevation_deg": [-7.0, 52.0],
@@ -134,6 +138,8 @@ def _update_robot_manifest(spec: dict[str, str], path: Path) -> None:
     contract.setdefault("type", "OmniLidar")
     contract.setdefault("mount_roll_deg", 180.0)
     manifest["asset"] = path.name
+    manifest["target_isaac_sim"] = "6.2"
+    manifest["ros2_pointcloud_publisher"] = "scripts/publish_mid360_ros2_isaacsim62.py"
     manifest["profile"] = spec["profile"]
     manifest["mid360"] = contract
     robot_root = str(contract["prim"])[: -len("/torso_link/mid360_link/mid360_native_approx")]
@@ -186,6 +192,8 @@ def _write_standalone_manifest(spec: dict[str, str], path: Path) -> None:
     manifest = {
         "schema_version": 1,
         "asset": path.name,
+        "target_isaac_sim": "6.2",
+        "ros2_pointcloud_publisher": "scripts/publish_mid360_ros2_isaacsim62.py",
         "profile": spec["profile"],
         "form": "standalone",
         "default_prim": "/MID360",
@@ -230,6 +238,8 @@ def update() -> dict[str, object]:
     catalog = {
         "schema_version": 2,
         "project": "Livox_MID360_IsaacSim",
+        "target_isaac_sim": "6.2",
+        "legacy_branch": "isaac-sim-5.1",
         "common_files": {
             "cad": {"path": str(CAD.relative_to(ROOT)), "sha256": sha256(CAD)},
             "official_pattern": {

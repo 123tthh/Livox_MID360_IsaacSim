@@ -15,8 +15,8 @@
   "default_prim": "/g1_29dof_rev_1_0",
   "files": {
     "Unitree_G1_4010_MID360_Rotary_Scan.usd": {
-      "bytes": 28344302,
-      "sha256": "1bbf63c9e7f9af73ffe46a8b83f242d797916cb9154dd0ce1b2f86238f3de1fd"
+      "bytes": 28343404,
+      "sha256": "2752163f75751d99a57ccc9a2a5e3996876e6f94c8ee3319ac071ea603af6557"
     }
   },
   "imu": {
@@ -37,6 +37,7 @@
     "low_reflectivity_range_m": 40.0,
     "model": "MID-360 40-line rotary approximation",
     "mount_roll_deg": 180.0,
+    "pattern_firing_rate_hz": 5000,
     "points_per_second": 200000,
     "prim": "/g1_29dof_rev_1_0/torso_link/mid360_link/mid360_native_approx",
     "profile": "rotary_scan",
@@ -60,9 +61,10 @@
     "mode_machine": 5,
     "wrist_motor": "4010"
   },
-  "ros2_pointcloud_publisher": "../../scripts/publish_mid360_ros2_isaacsim51.py",
+  "ros2_pointcloud_publisher": "scripts/publish_mid360_ros2_isaacsim62.py",
   "schema_version": 1,
   "source": "external:g1_29dof_rev_1_0",
+  "target_isaac_sim": "6.2",
   "torso_prim": "/g1_29dof_rev_1_0/torso_link",
   "usage": "README.md"
 }

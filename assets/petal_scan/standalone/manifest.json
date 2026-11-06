@@ -11,8 +11,8 @@
   "default_prim": "/MID360",
   "files": {
     "Livox_MID360_Petal_Scan.usd": {
-      "bytes": 3090111,
-      "sha256": "9d683cfec698d6511080a399660682fda2ba5c79fb667cad9f8bbec81798aa6d"
+      "bytes": 6407098,
+      "sha256": "7b15dc2b8c9f4bbaf46f5317583c3f57dc074c63a14df30dd1f6a9db49f5d29d"
     }
   },
   "form": "standalone",
@@ -35,10 +35,12 @@
       0.0,
       0.0
     ],
+    "noise_model": "ideal; no calibrated range or angle noise",
     "nominal_elevation_deg": [
       -7.0,
       52.0
     ],
+    "pattern_firing_rate_hz": 10,
     "points_per_second": 200000,
     "prim": "/MID360/torso_link/mid360_link/mid360_native_approx",
     "profile": "petal_scan",
@@ -51,7 +53,8 @@
       -52.0,
       7.0
     ],
-    "rtx_emitter_states": 1,
+    "rtx_emitter_states": 40,
+    "runtime_array_swapping": false,
     "scan_rate_hz": 10,
     "scan_type": "SOLID_STATE",
     "trajectory_duration_s": 4.0,
@@ -66,5 +69,7 @@
     "type": "OmniLidar"
   },
   "profile": "petal_scan",
-  "schema_version": 1
+  "ros2_pointcloud_publisher": "scripts/publish_mid360_ros2_isaacsim62.py",
+  "schema_version": 1,
+  "target_isaac_sim": "6.2"
 }

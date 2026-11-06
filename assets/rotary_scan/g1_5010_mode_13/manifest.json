@@ -18,8 +18,8 @@
   "derived_urdf": "../../common/g1_5010_support/Unitree_G1_5010_Training_Collision.urdf",
   "files": {
     "Unitree_G1_5010_Mode13_MID360_Rotary_Scan.usd": {
-      "bytes": 30952404,
-      "sha256": "560aa3ca23d43391da0893d3d2c22d78613c345aaf333e611d56fe909fd5a013"
+      "bytes": 30951663,
+      "sha256": "a874ba34f3427e2a58356eff91000ce612c825e18fa4e8d6e33c1a06acb51045"
     }
   },
   "imu": {
@@ -44,6 +44,7 @@
       3e-05,
       0.41618
     ],
+    "pattern_firing_rate_hz": 5000,
     "points_per_second": 200000,
     "prim": "/g1_29dof_mode_13_5010_mid360/torso_link/mid360_link/mid360_native_approx",
     "profile": "rotary_scan",
@@ -74,12 +75,13 @@
     "wrist_pitch_yaw_effort_limit_nm": 13.4,
     "wrist_pitch_yaw_velocity_limit_rad_s": 27.0
   },
+  "ros2_pointcloud_publisher": "scripts/publish_mid360_ros2_isaacsim62.py",
   "schema_version": 2,
   "source": {
     "instinctlab_commit": "ba28d3d2655b15a19b729476a630937a19610a3b",
     "instinctlab_repository": "https://github.com/project-instinct/InstinctLab",
     "mid360_source": "assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd",
-    "mid360_source_sha256": "1bbf63c9e7f9af73ffe46a8b83f242d797916cb9154dd0ce1b2f86238f3de1fd",
+    "mid360_source_sha256": "2752163f75751d99a57ccc9a2a5e3996876e6f94c8ee3319ac071ea603af6557",
     "support_root": "assets/common/g1_5010_support",
     "training_collision_urdf": "assets/common/g1_5010_support/instinctlab/g1_29dof_torsoBase_popsicle_with_shoe.urdf",
     "training_collision_urdf_sha256": "ef88a3094280b966624f60f7179aa59b7b2536fc282cf9fefa0c71c75a0a40fb",
@@ -89,5 +91,6 @@
     "unitree_repository": "https://github.com/unitreerobotics/unitree_ros",
     "unitree_urdf_sha256": "71180c77fe66d01e18786fc4470ecf3fa13ff3fd24245ff74608205c2d0d6a09",
     "unitree_variant": "g1_29dof_mode_13"
-  }
+  },
+  "target_isaac_sim": "6.2"
 }

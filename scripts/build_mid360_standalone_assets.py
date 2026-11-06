@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """Build one standalone MID-360 USD from a robot asset and the common CAD USD.
 
-The source robot asset selects the profile: a sibling
-``mid360_nonrepetitive_pattern`` Scope produces the Petal Scan component;
-otherwise the original 40-line ROTARY profile is preserved.
+The source OmniLidar scanType selects the native 6.2 Petal or Rotary profile.
 """
 
 from __future__ import annotations
@@ -45,17 +43,17 @@ def main() -> int:
         if source is None:
             raise RuntimeError(f"Could not open sensor source {args.sensor_source}")
         args.output_usd.parent.mkdir(parents=True, exist_ok=True)
-        stage = Usd.Stage.CreateNew(str(args.output_usd.resolve()))
+        stage = Usd.Stage.CreateInMemory()
         UsdGeom.SetStageMetersPerUnit(stage, 1.0)
         UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.z)
 
         root = UsdGeom.Xform.Define(stage, "/MID360").GetPrim()
         stage.SetDefaultPrim(root)
         source_mount = source.GetDefaultPrim().GetPath().AppendPath("torso_link/mid360_link")
-        source_pattern = source.GetPrimAtPath(source_mount.AppendChild("mid360_nonrepetitive_pattern"))
-        profile_name = "Petal Scan" if source_pattern.IsValid() else "Rotary Scan"
+        source_lidar = source.GetPrimAtPath(source_mount.AppendChild("mid360_native_approx"))
+        profile_name = "Petal Scan" if source_lidar.GetAttribute('omni:sensor:Core:scanType').Get() == 'SOLID_STATE' else "Rotary Scan"
         root.SetAssetInfoByKey("name", f"Livox MID-360 {profile_name} RTX LiDAR")
-        root.SetAssetInfoByKey("version", "Isaac Sim 5.1")
+        root.SetAssetInfoByKey("version", "Isaac Sim 6.2")
         Usd.ModelAPI(root).SetKind(Kind.Tokens.component)
         UsdGeom.Xform.Define(stage, "/MID360/torso_link")
         UsdGeom.Xform.Define(stage, "/MID360/torso_link/mid360_link")
@@ -67,10 +65,6 @@ def main() -> int:
             (
                 str(source_root_path.AppendPath("torso_link/mid360_link/mid360_native_approx")),
                 "/MID360/torso_link/mid360_link/mid360_native_approx",
-            ),
-            (
-                str(source_root_path.AppendPath("torso_link/mid360_link/mid360_nonrepetitive_pattern")),
-                "/MID360/torso_link/mid360_link/mid360_nonrepetitive_pattern",
             ),
             (
                 str(source_root_path.AppendPath("torso_link/mid360_imu")),
@@ -88,7 +82,11 @@ def main() -> int:
         # HOOPS preserves STEP coordinates in millimetres.  The wrapper is in metres.
         cad.AddScaleOp().Set(Gf.Vec3f(0.001, 0.001, 0.001))
 
-        stage.GetRootLayer().Save()
+        temporary = args.output_usd.with_name(args.output_usd.stem + '.build-tmp.usd')
+        stage.GetRootLayer().Export(str(temporary))
+        os.replace(temporary, args.output_usd)
+        from add_mid360_imu_isaacsim62 import add_imu
+        add_imu(args.output_usd.resolve())
         print(f"PROFILE={profile_name.upper().replace(' ', '_')}", flush=True)
         print(f"STANDALONE_USD={args.output_usd.resolve()}", flush=True)
         return 0

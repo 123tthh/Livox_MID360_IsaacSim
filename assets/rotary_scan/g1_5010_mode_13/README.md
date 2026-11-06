@@ -11,10 +11,10 @@ embedded ROS or motion-control Action Graph. Its sensor prim is:
 /g1_29dof_mode_13_5010_mid360/torso_link/mid360_link/mid360_native_approx
 ```
 
-Regenerate with an Isaac Lab environment compatible with Isaac Sim 5.1:
+Refresh the sensor profile with the Isaac Sim 6.2 Python environment:
 
 ```bash
-python scripts/build_g1_5010_mid360_asset.py
+python scripts/migrate_assets_isaacsim62.py
 python scripts/validate_assets.py
 ```
 

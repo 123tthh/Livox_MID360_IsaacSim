@@ -258,7 +258,7 @@ def write_manifest(
             {
                 "profile": "petal_scan",
                 "emitters_per_state": composed_summary["mid360_emitters"],
-                "rtx_emitter_states": 1,
+                "rtx_emitter_states": 40,
                 "trajectory_states": 40,
                 "channels": 20_000,
                 "trajectory_elevation_deg": [-7.2123, 52.164],
@@ -266,7 +266,7 @@ def write_manifest(
                 "trajectory_points": 800000,
                 "trajectory_source": "assets/common/mid360_official_pattern/mid360.csv",
                 "trajectory_sha256": "aa1fc08b6a4400608dbd6ee832b7ea3a9c3c37197e734f60f58fe5abf762269a",
-                "runtime_pattern_driver": "scripts/publish_mid360_ros2_isaacsim51.py",
+                "runtime_pattern_driver": None,
             }
         )
     else:
@@ -388,7 +388,7 @@ def _convert_and_compose(derived_urdf: Path, lidar_usd: Path, output_usd: Path) 
         raise RuntimeError(f"flattened asset has no OmniLidar at {sensor_path}")
     emitters = int(sensor.GetAttribute("omni:sensor:Core:numberOfEmitters").Get())
     scan_type = str(sensor.GetAttribute("omni:sensor:Core:scanType").Get())
-    report_rate = int(sensor.GetAttribute("omni:sensor:Core:reportRateBaseHz").Get())
+    report_rate = int(sensor.GetAttribute("omni:sensor:Core:patternFiringRateHz").Get())
     if (scan_type, emitters, report_rate) not in {
         ("SOLID_STATE", 20_000, 10),
         ("ROTARY", 40, 5_000),

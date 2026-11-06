@@ -1,232 +1,136 @@
-# Livox MID-360 for Isaac Sim 5.1
+# Livox MID-360 for Isaac Sim 6.2
 
 **English** | [简体中文](README_CN.md)
 
-Canonical project name: **Livox_MID360_IsaacSim**.
+**`main` targets Isaac Sim 6.2.** The complete 5.1 assets and runtime are maintained on [`isaac-sim-5.1`](https://github.com/123tthh/Livox_MID360_IsaacSim/tree/isaac-sim-5.1):
 
-This repository provides two explicitly separated MID-360 simulation scan profiles. Each profile
-includes a standalone LiDAR, a LiDAR-equipped Unitree G1 4010, and clearly distinguished
-LiDAR-equipped Unitree G1 5010 Mode13 and Mode15 robots, for a total of eight publishable assets.
+```bash
+# Isaac Sim 6.2
+git clone https://github.com/123tthh/Livox_MID360_IsaacSim.git
+# Isaac Sim 5.1
+git clone --branch isaac-sim-5.1 https://github.com/123tthh/Livox_MID360_IsaacSim.git
+```
+
+This repository includes eight ready-to-use USD assets: standalone MID-360 and Unitree G1 4010 / 5010 Mode13 / 5010 Mode15, each with Petal and Rotary profiles. Binary USDs, CAD, the official trajectory, and portable test scenes are tracked in Git; cloning downloads the assets directly.
 
 ## Asset matrix
 
-| Scan profile | Standalone MID-360 | G1 4010 | G1 5010 Mode13 | G1 5010 Mode15 |
+| Profile | Standalone | G1 4010 | G1 5010 Mode13 | G1 5010 Mode15 |
 | --- | --- | --- | --- | --- |
-| Petal Scan | `assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Petal_Scan.usd` |
-| Rotary Scan (conventional rotary approximation) | `assets/rotary_scan/standalone/Livox_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Rotary_Scan.usd` |
+| Petal | `assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Petal_Scan.usd` |
+| Rotary approximation | `assets/rotary_scan/standalone/Livox_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Rotary_Scan.usd` |
 
-Mode13 and Mode15 are not aliases. They are derived from the official
-`g1_29dof_mode_13.urdf` and `g1_29dof_mode_15.urdf`, respectively. Mode13 uses a
-14.3/22.5 hip reduction ratio, while Mode15 uses 22.5/22.5. Both use 5010 wrist motors
-and have an unlocked waist.
+The six robot assets are flattened, single-file robot USDs. Standalone assets reference `assets/common/Livox_MID360_CAD.usd` relatively; preserve the directory structure. Each asset has a `manifest.json`, and `assets/catalog.json` records file hashes and target version.
 
-Shared resources are under `assets/common/`:
+Mode13 and Mode15 remain distinct official configurations: hip reductions 14.3/22.5 and 22.5/22.5 respectively, 5010 wrist motors, unlocked waist, and 29 revolute joints. This migration preserves their existing geometry, joints and mounting transforms.
 
-- `Livox_MID360_CAD.usd`: CAD geometry converted from the user-provided STEP assembly;
-- `mid360_official_pattern/mid360.csv`: the official Livox four-second reference trajectory;
-- `g1_5010_support/`: 5010 robot provenance, meshes, and training-collision URDFs.
+## Native 6.2 scanning
 
-## Petal Scan
+| Parameter | Petal | Rotary approximation |
+| --- | --- | --- |
+| `scanType` | `SOLID_STATE` | `ROTARY` |
+| Native emitter states | 40 | 1 |
+| Emitters per state | 20,000 | 40 |
+| `patternFiringRateHz` | 10 | 5,000 |
+| Full scan rate | 10 Hz | 10 Hz |
+| Nominal emitted rays | 200,000/s | 200,000/s |
+| Pattern | Official 800,000 ordered Livox directions; four-second replay | Fixed 40 elevation channels |
+| Output | Cartesian sensor-frame coordinates, accumulated full scans | Same |
 
-Petal Scan uses the 800,000 ordered directions from the official Livox
-`livox_laser_simulation` project to produce non-repetitive petal coverage over a four-second
-reference window:
+6.2 stores all 40 Petal states directly on `OmniLidar`. **No Python angle-array swapping driver is needed.** RTX azimuth signs are converted to preserve the official Livox XYZ convention. The old 5.1 compressed Scope and swap scripts are confined to the 5.1 branch.
 
-| Parameter | Value |
-| --- | --- |
-| `scanType` | `SOLID_STATE` |
-| Output point rate | 200,000 points/s |
-| Scan frame rate | 10 Hz |
-| Trajectory states | 40 × 0.1 s |
-| Rays per state | 20,000 |
-| Per-point timing | 5 μs |
-| Reference window | 4 s, then repeats |
-| Nominal vertical FOV | -7° to +52° |
+Both profiles use ideal single returns, 0.1–70 m clipping, and no calibrated angle/range noise or reflectivity detection model. The emitted ray count is not a guarantee of 200,000 valid returns/s. Petal's four-second table repeats; Rotary is a conventional baseline, not the physical MID-360 pattern.
 
-Isaac Sim 5.1 limits the size of individual sensor attributes, so the USD OmniLidar keeps one
-20,000-ray RTX state. At runtime, the driver replaces it with another equally sized array every
-0.1 seconds. The complete compressed trajectory is stored in the
-`mid360_nonrepetitive_pattern` Scope beside the LiDAR.
+## Run the fixed G1 object field
 
-## Rotary Scan
-
-Rotary Scan retains the project's deterministic 40-line rotary approximation. It is intended for
-debugging, performance baselines, and use cases that do not require the physical sensor's scan pattern:
-
-| Parameter | Value |
-| --- | --- |
-| `scanType` | `ROTARY` |
-| Emitters | 40 |
-| Report rate per line | 5,000 Hz |
-| Scan frequency | 10 Hz |
-| Target point rate | 40 × 5,000 = 200,000 points/s |
-| Vertical coverage | -7° to +52° |
-
-Rotary Scan has no petal-trajectory Scope and does not start the runtime state driver.
-
-## Robot mounting contract
-
-The LiDAR mount is identical on the 4010 and 5010 robots:
-
-- translation from `torso_link`: `[0.0002835, 0.00003, 0.41618]` m;
-- roll: 180° inverted installation;
-- the LiDAR and `mid360_imu` are colocated and aligned;
-- IMU type: `IsaacImuSensor`, period `0.005 s` (200 Hz);
-- ROS point-cloud frame: `mid360_link`;
-- ROS IMU topic: `/mid360/imu`, frame: `mid360_link`;
-- TF: robot root to `mid360_link`;
-- LiDAR/IMU relative extrinsics: `T=[0,0,0]`, `R=I`.
-
-All G1 USD files are flattened, single-file robot assets. They do not embed a locomotion policy,
-mapping stack, or control Action Graph.
-
-## Using the assets in Isaac Sim 5.1
-
-1. Open or reference any USD from the asset matrix.
-2. Enable `isaacsim.ros2.bridge` and set
-   `/app/sensors/nv/lidar/outputBufferOnGPU=true`.
-3. Run `scripts/publish_mid360_ros2_isaacsim51.py` in the Script Editor.
-4. Petal Scan starts the 40-state driver automatically; Rotary Scan uses its fixed rotary
-   configuration directly from the USD.
-5. Call `cleanup_mid360_ros2()` to remove the runtime graph.
-
-To publish IMU data, connect the `mid360_imu` Prim listed in each asset README to
-`IsaacReadIMU` and `ROS2PublishImu`. The `README.md` in each of the eight asset directories
-documents its Prim paths, ROS 2 topics, and sensor extrinsics.
-
-The standalone assets reference `assets/common/Livox_MID360_CAD.usd` relatively. Preserve the
-repository directory structure when cloning or copying them.
-
-## Portable test scenes
-
-### Self-built object field with a fixed G1 5010 Mode13
-
-This validation uses only the self-built scene in this repository. Both robot feet touch the
-ground; a World FixedJoint anchors the robot, and all 29 revolute-joint limits are locked to zero.
-Nine different object types and a ground-contacting 5.5 m × 3.2 m projection wall are placed within
-5 m. No policy, locomotion controller, or mapping component is loaded:
+Use a fresh terminal with a Python environment containing **Isaac Sim 6.2**. The launcher selects its matching built-in ROS 2 Jazzy libraries; do not source a system ROS workspace in this terminal. No installation or EULA acceptance is performed by the scripts.
 
 ```bash
-./scripts/run_object_field_validation.sh petal
-./scripts/run_rviz2_mid360.sh petal
+# Optional if the active python3 is not your Sim 6.2 interpreter:
+export ISAAC_SIM_PYTHON=/path/to/your/6.2/environment/bin/python
+export ROS_DOMAIN_ID=76
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+bash scripts/run_object_field_validation.sh petal
 
-# Or use the conventional rotary approximation
-./scripts/run_object_field_validation.sh rotary
-./scripts/run_rviz2_mid360.sh rotary
+# Rotary profile, or a bounded headless run:
+bash scripts/run_object_field_validation.sh rotary
+bash scripts/run_object_field_validation.sh petal 10 --headless
 ```
 
-RViz2 uses the upright robot frame `G1`. The Petal profile accumulates 4.2 seconds to include the
-complete 40-state reference window, while the Rotary profile retains only one 0.1-second
-revolution. The topic remains `/mid360/points`, and the publisher does not downsample the data.
-See `tests/scenes/object_field/README.md` for details.
-
-### Azimuth–elevation trajectory comparison
-
-The figure below is generated from the repository-pinned set of 800,000 official Petal directions.
-The Rotary panel uses the asset's 40 fixed elevation channels. This compares ray directions and is
-independent of scene-surface geometry:
-
-![MID360 Petal and Rotary azimuth–elevation trajectory comparison](docs/validation/MID360_Petal_vs_Rotary_Angular_Pattern.png)
-
-Reproduce the figure with:
+In a separate system ROS 2 Jazzy terminal, use the same domain:
 
 ```bash
-python3 scripts/generate_scan_pattern_comparison.py
+export ROS_DOMAIN_ID=76
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+bash scripts/run_rviz2_mid360.sh petal
 ```
 
-### Controlled comparison screenshots (Isaac Sim 5.1, 2026-08-09)
+RViz uses upright `G1` as its Fixed Frame. Petal display accumulation is 4.2 s; Rotary uses one 0.1 s revolution. The self-built scene fixes both feet on the ground with a world anchor and locks 29 joints; ten ground-contacting object groups lie within 5 m. No locomotion policy or SLAM stack is loaded.
 
-Both groups use the same self-built scene layout, fixed-joint G1 5010 Mode13 robot, LiDAR pose,
-and `/mid360/points` publishing path. Only the scan profile and RViz2 display accumulation differ.
+## Python and Script Editor
 
-#### Petal: complete 4.2-second petal cycle
+Import `scripts/mid360_runtime_isaacsim62.py` **after** `SimulationApp` starts. Create a rendering product before playing; use physics time steps of 0.005 s for the 200 Hz IMU and enable RTX motion BVH as in the supplied launchers.
 
-![Isaac Sim 5.1 Petal projection-wall scene](docs/validation/screenshots/MID360_G1_5010_Mode13_Petal_ProjectionWall_IsaacSim51.png)
+If the parent scene has an empty time range, the reader supplies a one-hour range in the session layer to avoid Kit's single-frame playback loop. Set a suitable scene range for longer runs.
 
-![RViz2 Petal complete 4.2-second cycle](docs/validation/screenshots/MID360_G1_5010_Mode13_Petal_4p2s_ProjectionWall_RViz2.png)
-
-The 4.2-second accumulation covers all 40 consecutive direction states. It produces dense,
-interleaved, elevation-varying, non-repetitive tracks on the wall and curved surfaces.
-
-#### Rotary: one regular 0.1-second revolution
-
-![Isaac Sim 5.1 Rotary projection-wall scene](docs/validation/screenshots/MID360_G1_5010_Mode13_Rotary_ProjectionWall_IsaacSim51.png)
-
-![RViz2 Rotary regular 0.1-second revolution](docs/validation/screenshots/MID360_G1_5010_Mode13_Rotary_0p1s_ProjectionWall_RViz2.png)
-
-The 0.1-second display shows only one 40-line rotary revolution. The cloud is therefore visibly
-sparser and forms regular, parallel horizontal scan bands. A second frame confirms that this
-structure repeats with rotation rather than being a single-frame coincidence:
-
-![RViz2 Rotary regular 0.1-second revolution, second frame](docs/validation/screenshots/MID360_G1_5010_Mode13_Rotary_0p1s_ProjectionWall_RViz2_Alternate.png)
-
-#### Historical 0.5-second integration baseline
-
-Earlier 0.5-second Petal and Rotary screenshots of the same scene remain in
-[`docs/validation/screenshots/`](docs/validation/screenshots/). They document ROS 2/RViz2
-integration and are not used as the controlled scan-pattern comparison.
-
-`tests/scenes/` also provides directly openable 6, 10, and 15 cm stair stages. Each stage references
-the standalone Petal Scan by default and includes lighting and a PhysicsScene. The underlying stair
-USDs are fully self-contained and do not depend on Lidar_Hiking:
-
-```text
-tests/scenes/MID360_Test_H06cm.usda
-tests/scenes/MID360_Test_H10cm.usda
-tests/scenes/MID360_Test_H15cm.usda
+```python
+from mid360_runtime_isaacsim62 import MID360Runtime
+sensor = MID360Runtime(stage, root_path='/World/G1')  # or your standalone root
+# After sim.step(render=True):
+cloud = sensor.read_cloud()                # new 10 Hz frame, or None
+imu = sensor.read_imu(sim.current_time)     # 200 Hz at physics_dt=0.005
+# Finish with sensor.close().
 ```
 
-See `tests/scenes/README.md` for switching to Rotary Scan or G1 4010/5010 assets and selecting the
-point-cloud topic in RViz2.
+Clouds include `xyz`, `intensity`, `timestamp_ns`, `time_offset_ns`, `emitter_id` and `state_id`. Per-point acquisition time is `timestamp_ns + time_offset_ns`. Petal offsets retain the 5 μs firing slots even after invalid returns are removed. Raw `tickStates` in the tested 6.2 build stays zero; the reader establishes phase from returned XYZ and advances it using acquisition timestamps. Runtime tests independently search all 40 official states.
+
+For Script Editor, enable `isaacsim.ros2.bridge` in a correctly started 6.2 session, open/reference an asset, and run the whole `scripts/publish_mid360_ros2_isaacsim62.py` file. It starts post-physics IMU and post-render cloud callbacks. Set `MID360_ROBOT_ROOT_PATH='/World/G1_A'` first when multiple assets are present. Call `cleanup_mid360_ros2()` before replacing the scene or restarting the publisher.
+
+| Topic | Message / frame | Contract |
+| --- | --- | --- |
+| `/mid360/points` | `sensor_msgs/PointCloud2`, `mid360_link` | Full 10 Hz scans; packed 26-byte XYZ/intensity/tag/line/timestamp |
+| `/mid360/imu` | `sensor_msgs/Imu`, `mid360_link` | m/s² and rad/s; no absolute orientation |
+| `/tf` | `tf2_msgs/TFMessage` | Asset root frame → `mid360_link` |
+| `/clock` | `rosgraph_msgs/Clock` | Simulation time; consumers should use `use_sim_time=true` |
+
+`timestamp` in PointCloud2 is float64 **absolute nanoseconds**, matching `livox_ros_driver2`; it is not seconds. `line=emitter_id % 4` for Petal is a synthetic compatibility field because the official table lacks physical laser IDs. Rotary exposes its 40 synthetic channel indices. Do not interpret either as calibrated hardware channels.
+
+Robot mounting is preserved at torso translation `[0.0002835, 0.00003, 0.41618]` m with 180° roll. The bundled IMU remains colocated and aligned with LiDAR (`T=0`, `R=I`), an existing simulation mounting contract rather than the physical sensor's internal IMU offset. Standalone mounting roll is 0°.
 
 ## Rebuilding and validation
 
-Reapply the Petal Scan robot profiles:
+Run offline checks with:
 
 ```bash
-/path/to/isaac-sim/python.sh scripts/apply_mid360_petal_profile.py
-```
-
-Rebuild the standalone assets:
-
-```bash
-/path/to/isaac-sim/python.sh scripts/build_mid360_standalone_assets.py \
-  assets/common/Livox_MID360_CAD.usd \
-  assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd \
-  --sensor-source assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd
-
-/path/to/isaac-sim/python.sh scripts/build_mid360_standalone_assets.py \
-  assets/common/Livox_MID360_CAD.usd \
-  assets/rotary_scan/standalone/Livox_MID360_Rotary_Scan.usd \
-  --sensor-source assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd
-```
-
-Add or refresh the IMU in all eight assets after rebuilding:
-
-```bash
-/path/to/isaac-sim/python.sh scripts/add_mid360_imu_isaacsim51.py
-```
-
-Synchronize the manifests and run the tests:
-
-```bash
-python3 scripts/update_asset_metadata.py
 make check
 ```
 
-## Limitations
+Using the 6.2 Python interpreter, refresh all eight native sensor configurations and manifests:
 
-- Petal Scan is non-repetitive within the official four-second reference window and repeats after
-  four seconds. It is not an infinite-duration optical model of the physical sensor.
-- Rotary Scan is a repeatable 40-line approximation and must not be used to assess real MID-360
-  petal-coverage error.
-- `fullScan=true` is unstable in the validated Isaac Sim 5.1.0-rc.19 build. The ROS publisher keeps
-  `fullScan=false`; aggregate 0.1-second slices downstream when a complete 10 Hz scan is required.
-- This repository provides only sensor and sensor-equipped robot assets. It does not include a
-  Lidar_Hiking policy or FAST-LIO project.
+```bash
+python scripts/migrate_assets_isaacsim62.py
+python scripts/smoke_test_assets_isaacsim62.py
+bash scripts/run_isaacsim62.sh scripts/validate_runtime_isaacsim62.py --all --ros2 --callbacks
+```
+
+Rebuild a standalone wrapper from a robot sensor when needed:
+
+```bash
+python scripts/build_mid360_standalone_assets.py \
+  assets/common/Livox_MID360_CAD.usd \
+  assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd \
+  --sensor-source assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd
+python scripts/update_asset_metadata.py
+```
+
+Use the corresponding Rotary paths for that profile. Native configuration migration preserves robot geometry rather than reimporting robot URDFs. The optional URDF source builder requires a compatible Isaac Lab installation; its legacy cylinder/capsule conversion may differ under the newer importer.
+
+Reports: [6.2 USD/scene checks](docs/validation/isaacsim62_structure.json), [6.2 runtime and ROS checks](docs/validation/isaacsim62_runtime.json), and [5.1 branch verification](https://github.com/123tthh/Livox_MID360_IsaacSim/blob/isaac-sim-5.1/docs/validation/isaacsim51_20261106.json). Runtime validation uses a static closed room and anchored robots; it does not establish locomotion, dynamic distortion, FAST-LIO, or SLAM performance.
+
+Local 6.2.0.0 / RTX 5090 validation on 2026-11-06 passed all eight assets, all 40 Petal states and wraparound, 200 Hz IMU, and 244/244 clouds plus 4,880/4,880 IMU ROS messages. [Exact migration comparison](docs/validation/isaacsim62_migration.json) preserves geometry and robot physics. Both complete object-field launchers also passed: [Petal](docs/validation/isaacsim62_object_field_petal.json), [Rotary](docs/validation/isaacsim62_object_field_rotary.json).
+
+The historical screenshots under `docs/validation/screenshots/` were captured in **5.1** and retain their original names. They are not new 6.2 screenshots. The version-independent [angular pattern figure](docs/validation/MID360_Petal_vs_Rotary_Angular_Pattern.png) can be regenerated with `python scripts/generate_scan_pattern_comparison.py`.
 
 ## Sources and licensing
 
-Original scripts are licensed under the root MIT License. Provenance and retained licenses for the
-Livox trajectory, Unitree G1, InstinctLab-derived resources, and CAD are documented in
-`THIRD_PARTY_NOTICES.md` and under `assets/common/`.
+Original scripts use the root MIT license. Official trajectory, Unitree G1, InstinctLab resources and CAD provenance are recorded in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and `assets/common/`. Preserve their licenses when redistributing. The repository contains sensor and robot assets, not a locomotion policy, mapping implementation, hardware discovery stack, or infinite-duration optical model.

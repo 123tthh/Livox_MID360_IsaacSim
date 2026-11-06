@@ -1,6 +1,6 @@
 # MID-360 测试场景
 
-本目录提供三份可直接用 Isaac Sim 5.1 打开的测试 Stage：
+本目录提供三份可直接用 Isaac Sim 6.2 打开的测试 Stage：
 
 | Stage | 阶高 | 环境 | 默认传感器 |
 | --- | --- | --- | --- |
@@ -12,20 +12,19 @@
 顶层 Stage 添加了灯光、PhysicsScene，以及位于 `(0, 0, 1.2)` m、绕 X 轴旋转 180°
 的独立 MID-360，因此克隆仓库后可以直接测试点云。
 
-## Isaac Sim 5.1
+## Isaac Sim 6.2
 
 1. 打开本目录任意 `MID360_Test_H*.usda`。
-2. 启用 `isaacsim.ros2.bridge`，设置
-   `/app/sensors/nv/lidar/outputBufferOnGPU=true`。
+2. 按根 README 用内置 Jazzy 启动 6.2，并启用 `isaacsim.ros2.bridge`。
 3. 在 Script Editor 运行仓库根目录的
-   `scripts/publish_mid360_ros2_isaacsim51.py`。
+   `scripts/publish_mid360_ros2_isaacsim62.py`。
 4. 按 Play，通过 `/mid360/points` 查看点云；IMU Prim 为
    `/World/MID360/torso_link/mid360_imu`。
 5. RViz2 中将 Fixed Frame 设为 `mid360_link`，添加 PointCloud2，话题选择
    `/mid360/points`。
 
-Petal Scan 的 40 状态驱动由发布脚本自动启动。若只在 Isaac Sim 中查看 RTX 输出，亦可运行
-`scripts/drive_mid360_petal_scan_isaacsim51.py`。
+Petal Scan 直接使用 RTX 的 40 个原生发射状态，无需角度数组切换脚本。
+只需 Python 点云时使用 `scripts/mid360_runtime_isaacsim62.py`。
 
 ## 切换雷达资产
 
@@ -49,7 +48,7 @@ Petal Scan 的 40 状态驱动由发布脚本自动启动。若只在 Isaac Sim 
 
 ```bash
 make check
-/path/to/isaac-sim/python.sh scripts/smoke_test_assets_isaacsim51.py
+/path/to/isaac-sim/python.sh scripts/smoke_test_assets_isaacsim62.py
 ```
 
 `make check` 验证场景哈希、阶高、碰撞、默认 Prim 与相对引用；Isaac Sim 冒烟测试会解析三个

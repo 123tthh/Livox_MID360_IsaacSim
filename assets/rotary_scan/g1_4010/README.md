@@ -9,7 +9,7 @@ It uses the ordinary deterministic 40-line ROTARY approximation. The sensor prim
 ```
 
 The asset intentionally contains no saved ROS or motion-control Action Graph.
-Use `scripts/publish_mid360_ros2_isaacsim51.py` from the repository root in Isaac Sim's Script
+Use `scripts/publish_mid360_ros2_isaacsim62.py` from the repository root in Isaac Sim's Script
 Editor. Exact USD and sensor-contract hashes are in `manifest.json`.
 
 ## IMU 使用

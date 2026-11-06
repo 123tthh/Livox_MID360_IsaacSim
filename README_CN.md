@@ -1,216 +1,129 @@
-# Livox MID-360 for Isaac Sim 5.1
+# Livox MID-360 · Isaac Sim 6.2
 
 [English](README.md) | **简体中文**
 
-项目规范名：**Livox_MID360_IsaacSim**。
+**`main` 对应 Isaac Sim 6.2**。5.1 的完整资产和运行脚本保存在 [`isaac-sim-5.1`](https://github.com/123tthh/Livox_MID360_IsaacSim/tree/isaac-sim-5.1) 分支：
 
-本仓库提供两套明确分离的 MID-360 仿真扫描配置，每套都包含独立雷达、
-Unitree G1 4010 含雷达机器人，以及明确区分的 Unitree G1 5010 Mode13/Mode15
-含雷达机器人，共八份可发布资产。
+```bash
+# Isaac Sim 6.2
+git clone https://github.com/123tthh/Livox_MID360_IsaacSim.git
+# Isaac Sim 5.1
+git clone --branch isaac-sim-5.1 https://github.com/123tthh/Livox_MID360_IsaacSim.git
+```
 
-## 资产矩阵
+仓库直接包含 **8 个 USD 资产**：独立 MID-360、G1 4010、G1 5010 Mode13、G1 5010 Mode15，分别提供 Petal 与 Rotary 两种扫描配置。USD 二进制、CAD、官方轨迹和自包含测试场景均随 Git 上传，克隆即可取得。
 
-| 扫描配置 | 独立 MID-360 | G1 4010 | G1 5010 Mode13 | G1 5010 Mode15 |
+## 资产入口
+
+| 配置 | 独立雷达 | G1 4010 | G1 5010 Mode13 | G1 5010 Mode15 |
 | --- | --- | --- | --- | --- |
-| Petal Scan（花瓣扫描） | `assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Petal_Scan.usd` |
-| Rotary Scan（普通旋转近似） | `assets/rotary_scan/standalone/Livox_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Rotary_Scan.usd` |
+| Petal 花瓣扫描 | `assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Petal_Scan.usd` | `assets/petal_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Petal_Scan.usd` |
+| Rotary 旋转近似 | `assets/rotary_scan/standalone/Livox_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Rotary_Scan.usd` | `assets/rotary_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Rotary_Scan.usd` |
 
-Mode13 与 Mode15 不是别名：两者分别来自官方 `g1_29dof_mode_13.urdf` 和
-`g1_29dof_mode_15.urdf`。Mode13 髋部减速比为 14.3/22.5，Mode15 为
-22.5/22.5；两者均为 5010 手腕且腰部未锁定。
+机器人 USD 是扁平化的单文件资产。独立雷达相对引用 `assets/common/Livox_MID360_CAD.usd`，复制时保留目录结构。各目录的 `manifest.json` 与 `assets/catalog.json` 记录版本和文件哈希。
 
-共用资源位于 `assets/common/`：
+Mode13 与 Mode15 分别来自官方对应 URDF，髋部减速比分别为 14.3/22.5 与 22.5/22.5，均采用 5010 腕部电机、解锁腰部和 29 个旋转关节。此次迁移沿用已有机器人几何、关节与雷达安装变换。
 
-- `Livox_MID360_CAD.usd`：由用户提供的 STEP 装配转换得到的 CAD 几何；
-- `mid360_official_pattern/mid360.csv`：Livox 官方四秒参考轨迹；
-- `g1_5010_support/`：5010 机器人来源、网格和训练碰撞 URDF。
+## 6.2 扫描实现
 
-## Petal Scan（花瓣扫描）
+| 参数 | Petal | Rotary 近似 |
+| --- | --- | --- |
+| `scanType` | `SOLID_STATE` | `ROTARY` |
+| 原生发射状态 | 40 | 1 |
+| 每状态发射器 | 20,000 | 40 |
+| `patternFiringRateHz` | 10 | 5,000 |
+| 完整扫描帧率 | 10 Hz | 10 Hz |
+| 标称发射点数 | 200,000/s | 200,000/s |
+| 方向分布 | Livox 官方 80 万有序方向，4 秒循环 | 固定 40 仰角通道 |
 
-Petal Scan 使用 Livox 官方 `livox_laser_simulation` 的 800,000 条有序方向，
-在四秒参考窗口内形成非重复花瓣覆盖：
+6.2 的花瓣资产将 **40 个状态直接写入 OmniLidar**，无需 Python 定时替换角度数组。RTX 方位角符号已转换，以保持官方 Livox XYZ 方向。5.1 的压缩轨迹 Scope 和数组切换脚本仅在 5.1 分支保留。
 
-| 参数 | 值 |
-| --- | --- |
-| `scanType` | `SOLID_STATE` |
-| 输出点率 | 200,000 points/s |
-| 扫描帧率 | 10 Hz |
-| 轨迹状态 | 40 × 0.1 s |
-| 每状态射线 | 20,000 |
-| 单点时序 | 5 μs |
-| 参考窗口 | 4 s；之后循环 |
-| 标称垂直 FOV | -7° 到 +52° |
+两种配置均输出传感器坐标系中的笛卡尔点，累积为完整 10 Hz 帧；量程截断为 0.1–70 m，使用理想单回波，没有实测标定的距离/角度噪声和反射率探测概率模型。标称发射点数不等于有效回波点数。花瓣轨迹在 4 秒后重放；Rotary 用于基线调试，不代表真机扫描方式。
 
-Isaac Sim 5.1 对单传感器属性有大小限制，因此 USD 内的 OmniLidar 始终保留一个
-20,000-ray RTX state，运行驱动器每 0.1 秒替换同长度数组。完整轨迹压缩保存在雷达旁的
-`mid360_nonrepetitive_pattern` Scope 中。
+## 启动固定 G1 物体场景
 
-## Rotary Scan（普通雷达）
-
-Rotary Scan 保留原项目的确定性 40 线旋转近似，适用于调试、性能基线和不需要真机花纹的场景：
-
-| 参数 | 值 |
-| --- | --- |
-| `scanType` | `ROTARY` |
-| emitters | 40 |
-| 每线 report rate | 5,000 Hz |
-| 扫描频率 | 10 Hz |
-| 目标点率 | 40 × 5,000 = 200,000 points/s |
-| 垂直覆盖 | -7° 到 +52° |
-
-Rotary Scan 不包含花瓣轨迹 Scope，也不启动运行时状态切换器。
-
-## 机器人安装合同
-
-4010 和 5010 的雷达安装保持一致：
-
-- 相对 `torso_link` 平移：`[0.0002835, 0.00003, 0.41618]` m；
-- 滚转：180° 倒装；
-- LiDAR 和 `mid360_imu` 同位同向；
-- IMU 类型：`IsaacImuSensor`，周期 `0.005 s`（200 Hz）；
-- ROS 点云 frame：`mid360_link`；
-- ROS IMU 话题：`/mid360/imu`，frame：`mid360_link`；
-- TF：机器人根节点到 `mid360_link`；
-- LiDAR/IMU 相对外参：`T=[0,0,0]`、`R=I`。
-
-所有 G1 USD 都是展平的单文件机器人资产，不固化运动策略、建图或控制 Action Graph。
-
-## Isaac Sim 5.1 使用
-
-1. 直接打开或引用资产矩阵中的任意 USD。
-2. 启用 `isaacsim.ros2.bridge`，并设置
-   `/app/sensors/nv/lidar/outputBufferOnGPU=true`。
-3. 在 Script Editor 运行 `scripts/publish_mid360_ros2_isaacsim51.py`。
-4. Petal Scan 会自动启动 40 状态驱动；Rotary Scan 直接使用 USD 内的固定旋转配置。
-5. 清理运行时图：调用 `cleanup_mid360_ros2()`。
-
-读取 IMU 时，将各资产 README 中列出的 `mid360_imu` Prim 接入
-`IsaacReadIMU` 和 `ROS2PublishImu`。八个资产各自目录中的 `README.md`
-分别给出了 Prim 路径、ROS 2 话题和传感器外参设置。
-
-独立资产会相对引用 `assets/common/Livox_MID360_CAD.usd`，克隆或复制时应保留仓库目录结构。
-
-## 可移植测试场景
-
-### 自建物体场 + 固定 G1 5010 Mode13
-
-该验证只使用本仓库自建场景，机器人双脚落地且通过 World FixedJoint 固定，29 个旋转关节
-上下限均锁为 0；5 m 内放置九类不同物体和一块 5.5 m × 3.2 m 贴地投影墙。
-不加载策略、运控或建图组件：
+在未 source 系统 ROS 的新终端中使用已安装 Isaac Sim **6.2** 的 Python。启动脚本会选择该安装自带的 Jazzy 库，不安装软件、不替用户接受 EULA。
 
 ```bash
-./scripts/run_object_field_validation.sh petal
-./scripts/run_rviz2_mid360.sh petal
+# 若当前 python3 不是 Sim 6.2 环境，可显式指定：
+export ISAAC_SIM_PYTHON=/你的/6.2环境/bin/python
+export ROS_DOMAIN_ID=76
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+bash scripts/run_object_field_validation.sh petal
 
-# 或普通旋转近似
-./scripts/run_object_field_validation.sh rotary
-./scripts/run_rviz2_mid360.sh rotary
+# 旋转近似；或运行 10 秒后退出的无界面测试：
+bash scripts/run_object_field_validation.sh rotary
+bash scripts/run_object_field_validation.sh petal 10 --headless
 ```
 
-RViz2 使用直立机器人坐标系 `G1`。Petal 配置累积 4.2 s，以包含完整 40 状态
-参考窗口；Rotary 配置只保留 0.1 s 单圈。话题仍为 `/mid360/points`，发布端不降采样。
-详见 `tests/scenes/object_field/README.md`。
-
-### 方位角—俯仰角轨迹对比
-
-下图由仓库固定的官方 800,000 条 Petal 方向数据生成；右侧 Rotary 使用资产中的
-40 个固定俯仰通道。它比较的是射线方向域，不受场景表面形状影响：
-
-![MID360 Petal 与 Rotary 方位角俯仰角轨迹对比](docs/validation/MID360_Petal_vs_Rotary_Angular_Pattern.png)
-
-可复现生成命令：
+另开系统 ROS 2 Jazzy 终端，选择相同 ROS 域：
 
 ```bash
-python3 scripts/generate_scan_pattern_comparison.py
+export ROS_DOMAIN_ID=76
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
+bash scripts/run_rviz2_mid360.sh petal
 ```
 
-### 严格对照截图（Isaac Sim 5.1，2026-08-09）
+RViz 的 Fixed Frame 使用正立的 `G1`。Petal 累积 4.2 秒，Rotary 保留一个 0.1 秒周期。场景内 G1 双脚接地、通过 World FixedJoint 固定，29 个关节锁零；5 m 内有十组接地目标。不加载运控策略或 SLAM。
 
-以下两组使用完全相同的自建场景布局、G1 5010 Mode13 固定关节机器人、雷达位姿与
-`/mid360/points` 发布链路；只切换扫描配置和 RViz2 显示累积时间。
+## Python 与 Script Editor
 
-#### Petal：4.2 s 完整花瓣周期
+`SimulationApp` 启动后导入 `scripts/mid360_runtime_isaacsim62.py`。在开始仿真前建立传感器输出，物理步长使用 0.005 秒以取得 200 Hz IMU；RTX motion BVH 开关见启动脚本。
 
-![Isaac Sim 5.1 Petal 投影墙场景](docs/validation/screenshots/MID360_G1_5010_Mode13_Petal_ProjectionWall_IsaacSim51.png)
+若父场景时间范围为空，读取模块会在 session layer 设置一小时范围，避免 Kit 在单帧上循环播放；长期任务可自行设置场景时间范围。
 
-![RViz2 Petal 4.2 秒完整花瓣周期](docs/validation/screenshots/MID360_G1_5010_Mode13_Petal_4p2s_ProjectionWall_RViz2.png)
-
-4.2 s 覆盖完整的 40 个连续方向状态，墙面和多种曲面上形成密集、交织且随俯仰变化的
-非重复轨迹。
-
-#### Rotary：0.1 s 单圈规则扫描
-
-![Isaac Sim 5.1 Rotary 投影墙场景](docs/validation/screenshots/MID360_G1_5010_Mode13_Rotary_ProjectionWall_IsaacSim51.png)
-
-![RViz2 Rotary 0.1 秒单圈规则扫描](docs/validation/screenshots/MID360_G1_5010_Mode13_Rotary_0p1s_ProjectionWall_RViz2.png)
-
-0.1 s 只显示一圈 40 线旋转扫描，因此点云明显更稀疏，并呈规则、平行的水平扫描带。
-另一帧用于确认该结构随旋转重复，而不是单帧偶然形状：
-
-![RViz2 Rotary 0.1 秒单圈规则扫描（另一帧）](docs/validation/screenshots/MID360_G1_5010_Mode13_Rotary_0p1s_ProjectionWall_RViz2_Alternate.png)
-
-#### 历史 0.5 s 联调基线
-
-早期相同场景的 0.5 s Petal 与 Rotary 截图继续保留在
-[`docs/validation/screenshots/`](docs/validation/screenshots/)；它们用于 ROS 2/RViz2 联调记录，
-不作为扫描轨迹形态的严格对照。
-
-`tests/scenes/` 提供可直接打开的 6、10、15 cm 阶梯 Stage。每个 Stage 默认引用 Petal Scan
-独立雷达，带灯光和 PhysicsScene；底层阶梯 USD 完全自包含，不依赖 Lidar_Hiking：
-
-```text
-tests/scenes/MID360_Test_H06cm.usda
-tests/scenes/MID360_Test_H10cm.usda
-tests/scenes/MID360_Test_H15cm.usda
+```python
+from mid360_runtime_isaacsim62 import MID360Runtime
+sensor = MID360Runtime(stage, root_path='/World/G1')  # 也可指定独立雷达根路径
+# 每次 sim.step(render=True) 之后：
+cloud = sensor.read_cloud()              # 新 10 Hz 帧，或 None
+imu = sensor.read_imu(sim.current_time)   # physics_dt=0.005 时为 200 Hz
+# 结束时调用 sensor.close()
 ```
 
-如何切换 Rotary Scan、G1 4010/5010，以及如何在 RViz2 中选择点云话题，见
-`tests/scenes/README.md`。
+点云字典包含 `xyz`、`intensity`、`timestamp_ns`、`time_offset_ns`、`emitter_id`、`state_id`。逐点时间为 `timestamp_ns + time_offset_ns`，过滤无回波点后仍保留原始 5 μs 发射槽位。本机 6.2 的原始 `tickStates` 始终为零，读取模块先从实际 XYZ 建立初始相位，再按采集时间推进；验收另外遍历全部 40 个官方状态独立匹配，避免信任错误标签。
 
-## 重建与验证
+Script Editor 用法：在已正确加载内置 ROS 库并启用 `isaacsim.ros2.bridge` 的 6.2 会话中打开/引用资产，运行完整 `scripts/publish_mid360_ros2_isaacsim62.py`。脚本用物理步后回调发布 IMU、渲染后回调发布点云。多实例时先设置 `MID360_ROBOT_ROOT_PATH='/World/G1_A'`；换场景或重启前调用 `cleanup_mid360_ros2()`。
 
-重新写入 Petal Scan 机器人配置：
+| 话题 | 类型／坐标系 | 约定 |
+| --- | --- | --- |
+| `/mid360/points` | `PointCloud2`，`mid360_link` | 完整 10 Hz 点云；26 字节 XYZ/intensity/tag/line/timestamp |
+| `/mid360/imu` | `Imu`，`mid360_link` | m/s²、rad/s；不提供绝对姿态 |
+| `/tf` | `TFMessage` | 资产根坐标系 → `mid360_link` |
+| `/clock` | `Clock` | 仿真时间；订阅端设置 `use_sim_time=true` |
+
+PointCloud2 的 `timestamp` 为 float64 **绝对纳秒**，与 `livox_ros_driver2` 布局一致，不能当作秒。Petal 的 `line=emitter_id % 4` 只是兼容近似，官方方向表未提供物理激光 ID；Rotary 的 `line` 为 40 个合成通道编号。
+
+机器人安装约定沿用 torso 平移 `[0.0002835, 0.00003, 0.41618]` m、滚转 180°。IMU 与雷达仍共点且同向（`T=0`、`R=I`）；这是已有仿真约定，不是 MID-360 内部真实 IMU 外参。独立雷达安装滚转为 0°。
+
+## 重建与验收
 
 ```bash
-/path/to/isaac-sim/python.sh scripts/apply_mid360_petal_profile.py
+# 普通 Python：文件哈希、轨迹及场景测试
+make check
+
+# 在 Sim 6.2 Python 环境中：更新全部 8 个传感器配置和清单
+python scripts/migrate_assets_isaacsim62.py
+python scripts/smoke_test_assets_isaacsim62.py
+bash scripts/run_isaacsim62.sh scripts/validate_runtime_isaacsim62.py --all --ros2 --callbacks
 ```
 
-重建独立资产：
+需要从机器人传感器重新生成独立雷达时：
 
 ```bash
-/path/to/isaac-sim/python.sh scripts/build_mid360_standalone_assets.py \
+python scripts/build_mid360_standalone_assets.py \
   assets/common/Livox_MID360_CAD.usd \
   assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd \
   --sensor-source assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd
-
-/path/to/isaac-sim/python.sh scripts/build_mid360_standalone_assets.py \
-  assets/common/Livox_MID360_CAD.usd \
-  assets/rotary_scan/standalone/Livox_MID360_Rotary_Scan.usd \
-  --sensor-source assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd
+python scripts/update_asset_metadata.py
 ```
 
-重建后补入/刷新八个资产的 IMU：
+Rotary 版替换成对应路径。传感器迁移直接沿用机器人 USD，不重新导入 URDF。可选 URDF 重建器需要配套 Isaac Lab；新版导入器的圆柱/胶囊转换可能与历史版本不同。
 
-```bash
-/path/to/isaac-sim/python.sh scripts/add_mid360_imu_isaacsim51.py
-```
+报告：[6.2 资产／场景检查](docs/validation/isaacsim62_structure.json)、[6.2 点云、IMU 与 ROS 验收](docs/validation/isaacsim62_runtime.json)、[5.1 分支复核](https://github.com/123tthh/Livox_MID360_IsaacSim/blob/isaac-sim-5.1/docs/validation/isaacsim51_20261106.json)。运行测试使用静态封闭房间和固定关节的机器人，不据此宣称运控、动态畸变、FAST-LIO 或 SLAM 性能。
 
-同步清单并运行测试：
+2026-11-06 在本机 6.2.0.0 / RTX 5090 上，8 个资产全部通过：花瓣 40 状态及回绕、200 Hz IMU、244/244 帧点云和 4,880/4,880 条 IMU 的 ROS 收发。[逐项迁移比对](docs/validation/isaacsim62_migration.json)确认几何和机器人动力学配置一致；完整物体场景启动入口也通过：[Petal](docs/validation/isaacsim62_object_field_petal.json)、[Rotary](docs/validation/isaacsim62_object_field_rotary.json)。
 
-```bash
-python3 scripts/update_asset_metadata.py
-make check
-```
+`docs/validation/screenshots/` 保留原有 **5.1** 截图和文件名，不作为新 6.2 截图。[角度分布比较图](docs/validation/MID360_Petal_vs_Rotary_Angular_Pattern.png) 与场景版本无关，可用 `python scripts/generate_scan_pattern_comparison.py` 重建。
 
-## 限制
-
-- Petal Scan 在官方四秒参考窗口内非重复，第 4 秒后循环，不等同于无限时长真机光学模型。
-- Rotary Scan 是可重复的 40 线近似，不用于评估真实 MID-360 花瓣覆盖误差。
-- `fullScan=true` 在验证使用的 Isaac Sim 5.1.0-rc.19 中不稳定，ROS 发布脚本保持
-  `fullScan=false`，需要完整 10 Hz 扫描时应在下游聚合 0.1 秒切片。
-- 仓库只提供传感器与机器人组合资产，不包含 Lidar_Hiking 策略或 FAST-LIO 工程。
-
-## 来源与许可证
-
-原创脚本使用根目录 MIT License。Livox 轨迹、Unitree G1、InstinctLab 派生资源及 CAD
-来源说明见 `THIRD_PARTY_NOTICES.md` 和 `assets/common/` 内保留的许可证。
+原始脚本采用 MIT 许可证。Livox 官方轨迹、Unitree G1、InstinctLab 和 CAD 的来源与保留许可证见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) 及 `assets/common/`。仓库提供资产和传感器读取／发布模块，不包含运控策略、建图系统、硬件设备发现或无限时长光机模型。

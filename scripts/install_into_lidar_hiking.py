@@ -15,8 +15,8 @@ ASSET_ROOT = ROOT / "assets"
 RELATIVE_TARGET = Path("simulation/source/lidar_hiking_sim/lidar_hiking_sim/assets")
 PROFILES = ("petal_scan", "rotary_scan")
 ASSET_FORMS = ("standalone", "g1_4010", "g1_5010_mode_13", "g1_5010_mode_15")
-PUBLISHER_SOURCE = ROOT / "scripts/publish_mid360_ros2_isaacsim51.py"
-PUBLISHER_TARGET = Path("simulation/scripts/publish_lidar_hiking_mid360_ros2_isaacsim51.py")
+PUBLISHER_SOURCE = ROOT / "scripts/publish_mid360_ros2_isaacsim62.py"
+PUBLISHER_TARGET = Path("simulation/scripts/publish_lidar_hiking_mid360_ros2_isaacsim62.py")
 
 
 def main() -> None:
@@ -47,6 +47,7 @@ def main() -> None:
     if publisher_target.parent.is_dir():
         if not args.verify_only:
             shutil.copy2(PUBLISHER_SOURCE, publisher_target)
+            shutil.copy2(ROOT / 'scripts/mid360_runtime_isaacsim62.py', publisher_target.parent / 'mid360_runtime_isaacsim62.py')
         print(f"{'verified' if args.verify_only else 'installed'}: {publisher_target}")
 
 

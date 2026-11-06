@@ -1,4 +1,4 @@
-# Isaac Sim 5.1 自建物体场验证
+# Isaac Sim 6.2 自建物体场验证
 
 `MID360_Object_Field.usda` 是完全自建且自包含的 12 m × 12 m 地面场景。机器人周围
 5 m 内放置 Box、Sphere、Cylinder、Cone、Capsule、ThinWall、Pyramid、Wedge、Arch

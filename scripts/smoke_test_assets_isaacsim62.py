@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
-"""Open and validate all published assets inside Isaac Sim 5.1."""
+"""Open and validate all published assets inside Isaac Sim 6.2."""
 
 from __future__ import annotations
 
 import json
 import traceback
+from importlib.metadata import version
 from pathlib import Path
+import numpy as np
 
 from isaacsim import SimulationApp
 
 
-APP = SimulationApp({"headless": True})
+APP = SimulationApp({"headless": True, "multi_gpu": False,
+                     "extra_args": ["--/renderer/raytracingMotion/enabled=true",
+                                    "--/renderer/raytracingMotion/enabledForHydraEngines=0,1,2,3"]})
 
-import omni.replicator.core as rep  # noqa: E402
 import omni.usd  # noqa: E402
-from pxr import Gf, Usd, UsdGeom, UsdPhysics  # noqa: E402
+from pxr import Gf, Usd, UsdGeom, UsdPhysics, UsdUtils  # noqa: E402
+from isaacsim.sensors.experimental.rtx import Lidar, LidarSensor
+from apply_mid360_petal_profile import load_trajectory
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +30,10 @@ OBJECT_FIELD_SCENES = {
     "rotary": "tests/scenes/object_field/MID360_G1_5010_Rotary_Object_Field.usda",
 }
 LIDAR_SUFFIX = "/torso_link/mid360_link/mid360_native_approx"
+TRAJECTORY = load_trajectory()
+RESULTS = {"status": "RUNNING", "isaac_sim": version("isaacsim"),
+           "assets": {}, "stair_scenes": [], "object_field_scenes": [], "render_products": []}
+REPORT = ROOT / "docs/validation/isaacsim62_structure.json"
 
 
 def _one_lidar(stage: Usd.Stage):
@@ -52,6 +61,9 @@ def validate_asset(asset_id: str, entry: dict[str, object]) -> None:
     if stage is None or not stage.GetDefaultPrim().IsValid():
         raise RuntimeError(f"could not open {path}")
     lidar = _one_lidar(stage)
+    assert UsdGeom.GetStageMetersPerUnit(stage) == 1.
+    assert UsdGeom.GetStageUpAxis(stage) == 'Z'
+    assert not UsdUtils.ComputeAllDependencies(str(path))[2], f'unresolved dependencies: {asset_id}'
     core = "omni:sensor:Core:"
     scan_type = str(lidar.GetAttribute(core + "scanType").Get())
     emitters = int(lidar.GetAttribute(core + "numberOfEmitters").Get())
@@ -61,14 +73,17 @@ def validate_asset(asset_id: str, entry: dict[str, object]) -> None:
     if expected_profile == "petal_scan":
         if (scan_type, emitters, scan_rate) != ("SOLID_STATE", 20_000, 10):
             raise RuntimeError(f"bad Petal profile in {asset_id}")
-        if not pattern.IsValid():
-            raise RuntimeError(f"missing Petal trajectory in {asset_id}")
-        states = int(pattern.GetAttribute("lidarHiking:trajectoryStates").Get())
-        points_per_state = int(pattern.GetAttribute("lidarHiking:pointsPerState").Get())
-        if (states, points_per_state) != (40, 20_000):
-            raise RuntimeError(f"bad Petal state contract in {asset_id}")
+        schemas = list(lidar.GetMetadata('apiSchemas').explicitItems)
+        assert sum('EmitterStateAPI:' in name for name in schemas) == 40
+        assert not pattern.IsValid(), '6.2 must use native states, without a swapped-array Scope'
+        for i, (az, el) in enumerate(TRAJECTORY.states(), start=1):
+            prefix = core + f'emitterState:s{i:03d}:'
+            expected_az = np.asarray([-(v if v < 180. else v-360.) for v in az], dtype=np.float32)
+            assert np.array_equal(lidar.GetAttribute(prefix+'azimuthDeg').Get(), expected_az)
+            assert np.array_equal(lidar.GetAttribute(prefix+'elevationDeg').Get(), np.asarray(el, dtype=np.float32))
+            assert np.array_equal(lidar.GetAttribute(prefix+'fireTimeNs').Get(), np.arange(20000)*5000)
     else:
-        report_rate = int(lidar.GetAttribute(core + "reportRateBaseHz").Get())
+        report_rate = int(lidar.GetAttribute(core + "patternFiringRateHz").Get())
         if (scan_type, emitters, scan_rate, report_rate) != ("ROTARY", 40, 10, 5_000):
             raise RuntimeError(f"bad Rotary profile in {asset_id}")
         if pattern.IsValid():
@@ -114,6 +129,8 @@ def validate_asset(asset_id: str, entry: dict[str, object]) -> None:
         if not rigid_body.GetKinematicEnabledAttr().Get():
             raise RuntimeError(f"standalone MID-360 rigid body is not fixed: {asset_id}")
 
+    RESULTS['assets'][asset_id] = {'profile': expected_profile, 'joint_count': joint_count,
+                                  'unresolved_dependencies': [], 'official_rays_verified': 800000 if expected_profile == 'petal_scan' else 0}
     print(
         f"ASSET_OK={asset_id} PROFILE={expected_profile} FORM={entry['form']} "
         f"SCAN_TYPE={scan_type} EMITTERS={emitters} JOINTS={joint_count}",
@@ -128,18 +145,15 @@ def render_smoke(asset_id: str, entry: dict[str, object]) -> None:
         APP.update()
     stage = context.get_stage()
     lidar = _one_lidar(stage)
-    render_product = rep.create.render_product(
-        str(lidar.GetPath()),
-        resolution=(32, 32),
-        name=f"{asset_id.replace('-', '_')}_SmokeRenderProduct",
-        render_vars=["GenericModelOutput", "RtxSensorMetadata"],
-    )
+    with Usd.EditContext(stage, stage.GetSessionLayer()):
+        sensor = LidarSensor(Lidar(str(lidar.GetPath()), reset_xform_op_properties=False), annotators=['generic-model-output'])
     for _ in range(12):
         APP.update()
-    render_product.destroy()
+    sensor.detach_annotators(['generic-model-output'])
     for _ in range(3):
         APP.update()
     print(f"RENDER_OK={asset_id}", flush=True)
+    RESULTS['render_products'].append(asset_id)
 
 
 def validate_scene(scene_id: str, entry: dict[str, object]) -> None:
@@ -165,6 +179,7 @@ def validate_scene(scene_id: str, entry: dict[str, object]) -> None:
         f"SCENE_OK={scene_id} STEP_HEIGHT_M={step_height:g} LIDAR={lidar.GetPath()}",
         flush=True,
     )
+    RESULTS['stair_scenes'].append(scene_id)
 
 
 def render_scene_smoke(scene_id: str, entry: dict[str, object]) -> None:
@@ -174,18 +189,15 @@ def render_scene_smoke(scene_id: str, entry: dict[str, object]) -> None:
         APP.update()
     stage = context.get_stage()
     lidar = _one_lidar(stage)
-    render_product = rep.create.render_product(
-        str(lidar.GetPath()),
-        resolution=(32, 32),
-        name=f"{scene_id}_SceneSmokeRenderProduct",
-        render_vars=["GenericModelOutput", "RtxSensorMetadata"],
-    )
+    with Usd.EditContext(stage, stage.GetSessionLayer()):
+        sensor = LidarSensor(Lidar(str(lidar.GetPath()), reset_xform_op_properties=False), annotators=['generic-model-output'])
     for _ in range(12):
         APP.update()
-    render_product.destroy()
+    sensor.detach_annotators(['generic-model-output'])
     for _ in range(3):
         APP.update()
     print(f"SCENE_RENDER_OK={scene_id}", flush=True)
+    RESULTS['render_products'].append(scene_id)
 
 
 def validate_object_field_scene(profile: str, relative_path: str) -> None:
@@ -247,6 +259,7 @@ def validate_object_field_scene(profile: str, relative_path: str) -> None:
         f"ROBOT_MIN_Z={robot_min_z:.6f} SCAN_TYPE={actual_scan_type}",
         flush=True,
     )
+    RESULTS['object_field_scenes'].append(profile)
 
 
 def main() -> None:
@@ -265,10 +278,13 @@ def main() -> None:
             )
         print(f"ISAACSIM_ASSET_COUNT={len(CATALOG['assets'])}", flush=True)
         print(f"ISAACSIM_SCENE_COUNT={len(SCENE_CATALOG['scenes'])}", flush=True)
+        RESULTS['status'] = 'PASS'
     except BaseException:
+        RESULTS['status'] = 'FAIL'
         traceback.print_exc()
         raise
     finally:
+        REPORT.write_text(json.dumps(RESULTS, indent=2)+'\n')
         APP.close()
 
 

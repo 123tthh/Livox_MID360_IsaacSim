@@ -1,6 +1,6 @@
 # Livox MID-360 Rotary Scan standalone asset
 
-Import or reference `Livox_MID360_Rotary_Scan.usd` in Isaac Sim 5.1.
+Import or reference `Livox_MID360_Rotary_Scan.usd` in Isaac Sim 6.2.
 It combines the common MID-360 CAD assembly with the deterministic 40-line
 ROTARY approximation at 10 Hz and approximately 200,000 points/s.
 
@@ -9,7 +9,7 @@ directory structure when copying it. The default prim is `/MID360`, and the
 sensor prim is `/MID360/torso_link/mid360_link/mid360_native_approx`.
 
 This profile has no compressed petal trajectory and needs no runtime pattern
-driver. Use the common `scripts/publish_mid360_ros2_isaacsim51.py` when ROS 2
+driver. Use the common `scripts/publish_mid360_ros2_isaacsim62.py` when ROS 2
 PointCloud2 output is required.
 
 ## IMU 使用
@@ -18,5 +18,5 @@ PointCloud2 output is required.
 周期 `0.005 s`（200 Hz）。LiDAR 与 IMU 在组件原点同位同向；安装或引用
 `/MID360` 时无需再单独调整 IMU 位姿。
 
-ROS 2 中用 `IsaacReadIMU` 读取该 Prim，再通过 `ROS2PublishImu` 发布
-`/mid360/imu`，`frame_id=mid360_link`。FAST-LIO 使用单位外参。
+6.2 发布模块同时发布 `/mid360/imu`，`frame_id=mid360_link`，单位为 m/s²、rad/s。
+这是旋转近似配置；完整 LIO 融合性能未在本仓库验收。

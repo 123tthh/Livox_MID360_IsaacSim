@@ -11,8 +11,8 @@
   "default_prim": "/MID360",
   "files": {
     "Livox_MID360_Rotary_Scan.usd": {
-      "bytes": 4222,
-      "sha256": "68de69d4a4448ea84b4a16158abae81d8df951f14f08537744f6cedcaca52d7c"
+      "bytes": 3290,
+      "sha256": "06dcb7b8df0bcb8bf186c262395ff56757ae6ca9375706fd9ef183e90ec299ac"
     }
   },
   "form": "standalone",
@@ -38,6 +38,7 @@
       0.0,
       0.0
     ],
+    "pattern_firing_rate_hz": 5000,
     "points_per_second": 200000,
     "prim": "/MID360/torso_link/mid360_link/mid360_native_approx",
     "profile": "rotary_scan",
@@ -55,5 +56,7 @@
     "type": "OmniLidar"
   },
   "profile": "rotary_scan",
-  "schema_version": 1
+  "ros2_pointcloud_publisher": "scripts/publish_mid360_ros2_isaacsim62.py",
+  "schema_version": 1,
+  "target_isaac_sim": "6.2"
 }

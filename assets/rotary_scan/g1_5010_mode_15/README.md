@@ -1,5 +1,7 @@
 # Unitree G1 5010 Mode15 + MID-360 Rotary Scan
 
+目标版本：**Isaac Sim 6.2 (`main`)**。运行入口见仓库根 README。
+
 这是明确标注的官方 `g1_29dof_mode_15` 派生资产，不是 Mode13 的改名副本。
 
 - 资产：`Unitree_G1_5010_Mode15_MID360_Rotary_Scan.usd`

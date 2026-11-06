@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "isaac_sim": "6.2.0.0",
+  "assets": {
+    "g1-4010-mid360-petal": {
+      "profile": "petal_scan",
+      "joint_count": 29,
+      "unresolved_dependencies": [],
+      "official_rays_verified": 800000
+    },
+    "g1-4010-mid360-rotary": {
+      "profile": "rotary_scan",
+      "joint_count": 29,
+      "unresolved_dependencies": [],
+      "official_rays_verified": 0
+    },
+    "g1-5010-mode13-mid360-petal": {
+      "profile": "petal_scan",
+      "joint_count": 29,
+      "unresolved_dependencies": [],
+      "official_rays_verified": 800000
+    },
+    "g1-5010-mode13-mid360-rotary": {
+      "profile": "rotary_scan",
+      "joint_count": 29,
+      "unresolved_dependencies": [],
+      "official_rays_verified": 0
+    },
+    "g1-5010-mode15-mid360-petal": {
+      "profile": "petal_scan",
+      "joint_count": 29,
+      "unresolved_dependencies": [],
+      "official_rays_verified": 800000
+    },
+    "g1-5010-mode15-mid360-rotary": {
+      "profile": "rotary_scan",
+      "joint_count": 29,
+      "unresolved_dependencies": [],
+      "official_rays_verified": 0
+    },
+    "mid360-petal-standalone": {
+      "profile": "petal_scan",
+      "joint_count": 0,
+      "unresolved_dependencies": [],
+      "official_rays_verified": 800000
+    },
+    "mid360-rotary-standalone": {
+      "profile": "rotary_scan",
+      "joint_count": 0,
+      "unresolved_dependencies": [],
+      "official_rays_verified": 0
+    }
+  },
+  "stair_scenes": [
+    "h06cm",
+    "h10cm",
+    "h15cm"
+  ],
+  "object_field_scenes": [
+    "petal",
+    "rotary"
+  ],
+  "render_products": [
+    "mid360-petal-standalone",
+    "mid360-rotary-standalone",
+    "h10cm",
+    "object_petal",
+    "object_rotary"
+  ]
+}

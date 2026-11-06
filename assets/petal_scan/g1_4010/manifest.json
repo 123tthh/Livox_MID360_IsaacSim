@@ -15,8 +15,8 @@
   "default_prim": "/g1_29dof_rev_1_0",
   "files": {
     "Unitree_G1_4010_MID360_Petal_Scan.usd": {
-      "bytes": 31430184,
-      "sha256": "3053f81679274b4d10e4bdf847407f0668fddd34efe081d94b0cbb0043936662"
+      "bytes": 34747418,
+      "sha256": "85d83102ea5f7a89d9dde15a1dbc89b99e71aa25800622feda74e17a8de40a95"
     }
   },
   "imu": {
@@ -34,10 +34,12 @@
     "low_reflectivity_range_m": 40.0,
     "model": "MID-360 official non-repetitive petal scan replay",
     "mount_roll_deg": 180.0,
+    "noise_model": "ideal; no calibrated range or angle noise",
     "nominal_elevation_deg": [
       -7.0,
       52.0
     ],
+    "pattern_firing_rate_hz": 10,
     "points_per_second": 200000,
     "prim": "/g1_29dof_rev_1_0/torso_link/mid360_link/mid360_native_approx",
     "profile": "petal_scan",
@@ -50,7 +52,8 @@
       -52.0,
       7.0
     ],
-    "rtx_emitter_states": 1,
+    "rtx_emitter_states": 40,
+    "runtime_array_swapping": false,
     "scan_rate_hz": 10,
     "scan_type": "SOLID_STATE",
     "trajectory_duration_s": 4.0,
@@ -71,9 +74,10 @@
     "mode_machine": 5,
     "wrist_motor": "4010"
   },
-  "ros2_pointcloud_publisher": "../../scripts/publish_mid360_ros2_isaacsim51.py",
+  "ros2_pointcloud_publisher": "scripts/publish_mid360_ros2_isaacsim62.py",
   "schema_version": 1,
   "source": "external:g1_29dof_rev_1_0",
+  "target_isaac_sim": "6.2",
   "torso_prim": "/g1_29dof_rev_1_0/torso_link",
   "usage": "README.md"
 }

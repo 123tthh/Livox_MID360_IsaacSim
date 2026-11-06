@@ -5,7 +5,7 @@
       "includes_imu": true,
       "path": "assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd",
       "profile": "petal_scan",
-      "sha256": "3053f81679274b4d10e4bdf847407f0668fddd34efe081d94b0cbb0043936662",
+      "sha256": "85d83102ea5f7a89d9dde15a1dbc89b99e71aa25800622feda74e17a8de40a95",
       "wrist_motor": "4010"
     },
     "g1-4010-mid360-rotary": {
@@ -13,7 +13,7 @@
       "includes_imu": true,
       "path": "assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd",
       "profile": "rotary_scan",
-      "sha256": "1bbf63c9e7f9af73ffe46a8b83f242d797916cb9154dd0ce1b2f86238f3de1fd",
+      "sha256": "2752163f75751d99a57ccc9a2a5e3996876e6f94c8ee3319ac071ea603af6557",
       "wrist_motor": "4010"
     },
     "g1-5010-mode13-mid360-petal": {
@@ -22,7 +22,7 @@
       "mode_machine": 13,
       "path": "assets/petal_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Petal_Scan.usd",
       "profile": "petal_scan",
-      "sha256": "5afaa6a92088349c90dad5fe5b583a6055fe6a96c5096f139674868fafe4438e",
+      "sha256": "ec488f62bfa12955c433f9298a542b7613f554be28912bb6b61598853b18b56e",
       "wrist_motor": "5010"
     },
     "g1-5010-mode13-mid360-rotary": {
@@ -31,7 +31,7 @@
       "mode_machine": 13,
       "path": "assets/rotary_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Rotary_Scan.usd",
       "profile": "rotary_scan",
-      "sha256": "560aa3ca23d43391da0893d3d2c22d78613c345aaf333e611d56fe909fd5a013",
+      "sha256": "a874ba34f3427e2a58356eff91000ce612c825e18fa4e8d6e33c1a06acb51045",
       "wrist_motor": "5010"
     },
     "g1-5010-mode15-mid360-petal": {
@@ -40,7 +40,7 @@
       "mode_machine": 15,
       "path": "assets/petal_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Petal_Scan.usd",
       "profile": "petal_scan",
-      "sha256": "9d850964022173dae76901b830506a0c106acec4d24eaeea02fc24782020a5ab",
+      "sha256": "59b67c7bac92e838f6199dde70a2d41a2495cbd29bf598d7ee987205513576c1",
       "wrist_motor": "5010"
     },
     "g1-5010-mode15-mid360-rotary": {
@@ -49,7 +49,7 @@
       "mode_machine": 15,
       "path": "assets/rotary_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Rotary_Scan.usd",
       "profile": "rotary_scan",
-      "sha256": "1cba092299dbe4c6e7d036b42261832310bae89f4a2f3aabd3e7233287dbfdf4",
+      "sha256": "e02a7c6d17c0842d6b7ec2d8353c58cc6725110642b6c958cd6c7d59c3b069a1",
       "wrist_motor": "5010"
     },
     "mid360-petal-standalone": {
@@ -57,14 +57,14 @@
       "includes_imu": true,
       "path": "assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd",
       "profile": "petal_scan",
-      "sha256": "9d683cfec698d6511080a399660682fda2ba5c79fb667cad9f8bbec81798aa6d"
+      "sha256": "7b15dc2b8c9f4bbaf46f5317583c3f57dc074c63a14df30dd1f6a9db49f5d29d"
     },
     "mid360-rotary-standalone": {
       "form": "standalone",
       "includes_imu": true,
       "path": "assets/rotary_scan/standalone/Livox_MID360_Rotary_Scan.usd",
       "profile": "rotary_scan",
-      "sha256": "68de69d4a4448ea84b4a16158abae81d8df951f14f08537744f6cedcaca52d7c"
+      "sha256": "06dcb7b8df0bcb8bf186c262395ff56757ae6ca9375706fd9ef183e90ec299ac"
     }
   },
   "common_files": {
@@ -77,6 +77,8 @@
       "sha256": "aa1fc08b6a4400608dbd6ee832b7ea3a9c3c37197e734f60f58fe5abf762269a"
     }
   },
+  "legacy_branch": "isaac-sim-5.1",
   "project": "Livox_MID360_IsaacSim",
-  "schema_version": 2
+  "schema_version": 2,
+  "target_isaac_sim": "6.2"
 }

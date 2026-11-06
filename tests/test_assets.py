@@ -33,6 +33,8 @@ class AssetTests(unittest.TestCase):
         catalog = json.loads((ROOT / "assets/catalog.json").read_text())
         self.assertEqual(catalog["schema_version"], 2)
         self.assertEqual(catalog["project"], "Livox_MID360_IsaacSim")
+        self.assertEqual(catalog["target_isaac_sim"], "6.2")
+        self.assertEqual(catalog["legacy_branch"], "isaac-sim-5.1")
         profiles = [entry["profile"] for entry in catalog["assets"].values()]
         forms = [entry["form"] for entry in catalog["assets"].values()]
         self.assertEqual(profiles.count("petal_scan"), 4)
@@ -52,6 +54,8 @@ class AssetTests(unittest.TestCase):
             manifest = json.loads((asset_path.parent / "manifest.json").read_text())
             self.assertEqual(manifest["asset"], asset_path.name)
             self.assertEqual(manifest["profile"], entry["profile"])
+            self.assertEqual(manifest["target_isaac_sim"], "6.2")
+            self.assertTrue((ROOT / manifest["ros2_pointcloud_publisher"]).is_file())
             self.assertTrue(entry["includes_imu"])
             self.assertEqual(manifest["imu"]["type"], "IsaacImuSensor")
             self.assertEqual(manifest["imu"]["rate_hz"], 200)
@@ -65,7 +69,7 @@ class AssetTests(unittest.TestCase):
             if entry["profile"] == "petal_scan":
                 self.assertEqual(sensor["scan_type"], "SOLID_STATE")
                 self.assertEqual(sensor["emitters_per_state"], POINTS_PER_STATE)
-                self.assertEqual(sensor["rtx_emitter_states"], 1)
+                self.assertEqual(sensor["rtx_emitter_states"], STATE_COUNT)
                 self.assertEqual(sensor["trajectory_states"], STATE_COUNT)
                 self.assertEqual(sensor["channels"], CHANNEL_COUNT)
                 self.assertEqual(sensor["report_rate_hz"], SCAN_RATE_HZ)
