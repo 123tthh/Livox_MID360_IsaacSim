@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "verified_date": "2026-11-06",
+  "branch": "isaac-sim-5.1",
+  "base_commit": "a7ba6e57869f46dfd9e434f717c271bb6aa05d8c",
+  "isaac_sim": "5.1.0-rc.19+release.26219.9c81211b.gl",
+  "checks": {
+    "asset_structure_count": 8,
+    "stair_scene_structure_count": 3,
+    "object_field_structure_count": 2,
+    "rtx_render_product_initialization_count": 5,
+    "repository_unit_tests": 11
+  },
+  "scope": "Structure, composition and RTX render-product initialization. No new ROS transport, per-point trajectory accuracy, or SLAM performance claims.",
+  "markers": [
+    "ASSET_OK=g1-4010-mid360-petal PROFILE=petal_scan FORM=robot SCAN_TYPE=SOLID_STATE EMITTERS=20000 JOINTS=29",
+    "ASSET_OK=g1-4010-mid360-rotary PROFILE=rotary_scan FORM=robot SCAN_TYPE=ROTARY EMITTERS=40 JOINTS=29",
+    "ASSET_OK=g1-5010-mode13-mid360-petal PROFILE=petal_scan FORM=robot SCAN_TYPE=SOLID_STATE EMITTERS=20000 JOINTS=29",
+    "ASSET_OK=g1-5010-mode13-mid360-rotary PROFILE=rotary_scan FORM=robot SCAN_TYPE=ROTARY EMITTERS=40 JOINTS=29",
+    "ASSET_OK=g1-5010-mode15-mid360-petal PROFILE=petal_scan FORM=robot SCAN_TYPE=SOLID_STATE EMITTERS=20000 JOINTS=29",
+    "ASSET_OK=g1-5010-mode15-mid360-rotary PROFILE=rotary_scan FORM=robot SCAN_TYPE=ROTARY EMITTERS=40 JOINTS=29",
+    "ASSET_OK=mid360-petal-standalone PROFILE=petal_scan FORM=standalone SCAN_TYPE=SOLID_STATE EMITTERS=20000 JOINTS=0",
+    "ASSET_OK=mid360-rotary-standalone PROFILE=rotary_scan FORM=standalone SCAN_TYPE=ROTARY EMITTERS=40 JOINTS=0",
+    "RENDER_OK=mid360-petal-standalone",
+    "RENDER_OK=mid360-rotary-standalone",
+    "SCENE_OK=h06cm STEP_HEIGHT_M=0.06 LIDAR=/World/MID360/torso_link/mid360_link/mid360_native_approx",
+    "SCENE_OK=h10cm STEP_HEIGHT_M=0.1 LIDAR=/World/MID360/torso_link/mid360_link/mid360_native_approx",
+    "SCENE_OK=h15cm STEP_HEIGHT_M=0.15 LIDAR=/World/MID360/torso_link/mid360_link/mid360_native_approx",
+    "SCENE_RENDER_OK=h10cm",
+    "OBJECT_SCENE_OK=petal OBJECTS=10 JOINTS=29 ROBOT_MIN_Z=0.000000 SCAN_TYPE=SOLID_STATE",
+    "SCENE_RENDER_OK=object_petal",
+    "OBJECT_SCENE_OK=rotary OBJECTS=10 JOINTS=29 ROBOT_MIN_Z=0.000000 SCAN_TYPE=ROTARY",
+    "SCENE_RENDER_OK=object_rotary",
+    "ISAACSIM_ASSET_COUNT=8",
+    "ISAACSIM_SCENE_COUNT=3"
+  ],
+  "assets": {
+    "g1-4010-mid360-petal": {
+      "path": "assets/petal_scan/g1_4010/Unitree_G1_4010_MID360_Petal_Scan.usd",
+      "sha256": "3053f81679274b4d10e4bdf847407f0668fddd34efe081d94b0cbb0043936662"
+    },
+    "g1-4010-mid360-rotary": {
+      "path": "assets/rotary_scan/g1_4010/Unitree_G1_4010_MID360_Rotary_Scan.usd",
+      "sha256": "1bbf63c9e7f9af73ffe46a8b83f242d797916cb9154dd0ce1b2f86238f3de1fd"
+    },
+    "g1-5010-mode13-mid360-petal": {
+      "path": "assets/petal_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Petal_Scan.usd",
+      "sha256": "5afaa6a92088349c90dad5fe5b583a6055fe6a96c5096f139674868fafe4438e"
+    },
+    "g1-5010-mode13-mid360-rotary": {
+      "path": "assets/rotary_scan/g1_5010_mode_13/Unitree_G1_5010_Mode13_MID360_Rotary_Scan.usd",
+      "sha256": "560aa3ca23d43391da0893d3d2c22d78613c345aaf333e611d56fe909fd5a013"
+    },
+    "g1-5010-mode15-mid360-petal": {
+      "path": "assets/petal_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Petal_Scan.usd",
+      "sha256": "9d850964022173dae76901b830506a0c106acec4d24eaeea02fc24782020a5ab"
+    },
+    "g1-5010-mode15-mid360-rotary": {
+      "path": "assets/rotary_scan/g1_5010_mode_15/Unitree_G1_5010_Mode15_MID360_Rotary_Scan.usd",
+      "sha256": "1cba092299dbe4c6e7d036b42261832310bae89f4a2f3aabd3e7233287dbfdf4"
+    },
+    "mid360-petal-standalone": {
+      "path": "assets/petal_scan/standalone/Livox_MID360_Petal_Scan.usd",
+      "sha256": "9d683cfec698d6511080a399660682fda2ba5c79fb667cad9f8bbec81798aa6d"
+    },
+    "mid360-rotary-standalone": {
+      "path": "assets/rotary_scan/standalone/Livox_MID360_Rotary_Scan.usd",
+      "sha256": "68de69d4a4448ea84b4a16158abae81d8df951f14f08537744f6cedcaca52d7c"
+    }
+  }
+}

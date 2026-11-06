@@ -1,5 +1,9 @@
 # Livox MID-360 for Isaac Sim 5.1
 
+当前为 **`isaac-sim-5.1`** 维护分支。Isaac Sim 6.2 请使用 [`main`](https://github.com/123tthh/Livox_MID360_IsaacSim/tree/main)。两套 USD 与脚本按版本分别维护；5.1 用户请执行 `git clone --branch isaac-sim-5.1 https://github.com/123tthh/Livox_MID360_IsaacSim.git`。
+
+2026-11-06 已用本机 Isaac Sim `5.1.0-rc.19` 复核：8 个资产、3 个台阶场景及两套固定 G1 物体场景结构检查通过；两个独立雷达、10 cm 台阶场景及两套物体场景的 RTX 渲染产品初始化通过，11 项仓库测试通过。详见[复核报告](docs/validation/isaacsim51_20261106.json)。
+
 [English](README.md) | **简体中文**
 
 项目规范名：**Livox_MID360_IsaacSim**。

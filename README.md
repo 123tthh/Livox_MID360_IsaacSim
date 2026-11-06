@@ -1,5 +1,9 @@
 # Livox MID-360 for Isaac Sim 5.1
 
+This is the **`isaac-sim-5.1`** maintenance branch. Use [`main`](https://github.com/123tthh/Livox_MID360_IsaacSim/tree/main) for Isaac Sim 6.2. The USD assets and scripts are version-specific; clone with `git clone --branch isaac-sim-5.1 https://github.com/123tthh/Livox_MID360_IsaacSim.git` for 5.1.
+
+Local verification on 2026-11-06 used Isaac Sim `5.1.0-rc.19`: all eight assets, three stair scenes, and both fixed-G1 object-field scenes passed structure checks; both standalone sensors, the 10 cm stair scene, and both object-field scenes passed RTX render-product initialization. The 11 repository tests also passed. See [verification report](docs/validation/isaacsim51_20261106.json).
+
 **English** | [简体中文](README_CN.md)
 
 Canonical project name: **Livox_MID360_IsaacSim**.
