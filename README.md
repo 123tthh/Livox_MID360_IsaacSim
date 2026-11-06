@@ -4,6 +4,8 @@ This is the **`isaac-sim-5.1`** maintenance branch. Use [`main`](https://github.
 
 Local verification on 2026-11-06 used Isaac Sim `5.1.0-rc.19`: all eight assets, three stair scenes, and both fixed-G1 object-field scenes passed structure checks; both standalone sensors, the 10 cm stair scene, and both object-field scenes passed RTX render-product initialization. The 11 repository tests also passed. See [verification report](docs/validation/isaacsim51_20261106.json).
 
+The 5.1 launcher defaults to `$HOME/isaac-sim-5.1.0`; set `ISAAC_SIM_ROOT` for another installation. Its bridge uses built-in Humble. In the separate RViz terminal, set `ROS_DISTRO=jazzy` if the installed system ROS is Jazzy rather than Humble.
+
 **English** | [简体中文](README_CN.md)
 
 Canonical project name: **Livox_MID360_IsaacSim**.

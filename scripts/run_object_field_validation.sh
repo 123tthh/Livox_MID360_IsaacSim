@@ -9,7 +9,7 @@ case "$PROFILE" in
 esac
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-ISAAC_SIM_ROOT="${ISAAC_SIM_ROOT:-/home/admin/isaac-sim-5.1.0}"
+ISAAC_SIM_ROOT="${ISAAC_SIM_ROOT:-${HOME}/isaac-sim-5.1.0}"
 set -u
 export ROS_DISTRO="humble"
 export RMW_IMPLEMENTATION="${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}"

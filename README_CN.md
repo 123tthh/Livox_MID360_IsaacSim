@@ -4,6 +4,8 @@
 
 2026-11-06 已用本机 Isaac Sim `5.1.0-rc.19` 复核：8 个资产、3 个台阶场景及两套固定 G1 物体场景结构检查通过；两个独立雷达、10 cm 台阶场景及两套物体场景的 RTX 渲染产品初始化通过，11 项仓库测试通过。详见[复核报告](docs/validation/isaacsim51_20261106.json)。
 
+5.1 启动入口默认安装目录为 `$HOME/isaac-sim-5.1.0`，其他位置通过 `ISAAC_SIM_ROOT` 指定；Bridge 使用 Sim 内置 Humble。若系统安装的是 Jazzy，在另一个 RViz 终端设置 `ROS_DISTRO=jazzy`，再运行 RViz 脚本。
+
 [English](README.md) | **简体中文**
 
 项目规范名：**Livox_MID360_IsaacSim**。

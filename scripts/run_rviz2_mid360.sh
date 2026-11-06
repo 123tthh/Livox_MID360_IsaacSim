@@ -15,7 +15,7 @@ case "$PROFILE" in
     exit 2
     ;;
 esac
-source /opt/ros/humble/setup.bash
+source "/opt/ros/${ROS_DISTRO:-humble}/setup.bash"
 set -u
 export RMW_IMPLEMENTATION="${RMW_IMPLEMENTATION:-rmw_fastrtps_cpp}"
 export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}"
